@@ -1,0 +1,304 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en-gb">
+  <head>
+    <title>FFP documentation</title>
+    <meta content="Me" name="author">
+    <meta content="BlueGriffon wysiwyg editor" name="generator">
+    <meta content="text/html; charset=utf-8" http-equiv="content-type">
+  </head>
+  <body>
+    <h2>Fast Fix Parser (FFP)</h2>
+    <h3>What is FFP?</h3>
+    FFP is a library which converts chunks of data (raw bytes) as they arrive
+    from e.g. a socket, into a representation of Fix messages that can be
+    further analysed for semantic checks, converted into “business” structures,
+    etc. It also provides a way to specify what tags are allowed for a
+    particular message and verifies this specification at run-time.<br>
+    <h3>Why another Fix parser?</h3>
+    Yes, there are many other Fix parsers out there. This library aims to
+    address the following issues with other similar designs:<br>
+    <ul>
+      <li>Speed. This parser can process about 250,000 messages with groups per
+        second in a single thread on my rather old Core i5-430M 2.26GHz laptop,
+        and about 400,000 simple messages without groups. The processing time is
+        more or less a linear function of the message length.</li>
+      <li>It does not impose any particular I/O or threading model. In fact, it
+        does no I/O at all, and there are no threads running in the background.
+        This greatly simplifies integration of the library into an existing code
+        base. </li>
+      <li>The parser does not expect every chunk of input data to be a complete
+        Fix message. The data can be fed into the parser as they become
+        available, and the parser splits or combines the input into complete
+        messages.</li>
+      <li>The parser is written in plain C, not in C++. Consequently, it does
+        not use C++ exceptions for delivering errors. While C++ exceptions is a
+        convenient mechanism for error reporting and processing, it also affects
+        overall performance because it usually takes quite some time (hundreds
+        of microseconds for one implementation I tried) for an exception to be
+        propagated from the point where it is thrown to the point where it gets
+        caught and processed. To make things worse, the time is implementation
+        dependent and is not guaranteed. On a high-speed server this time can
+        cause a serious disruption to the message processing pipelines, also
+        delaying processing of Fix messages coming from other connections.</li>
+    </ul>
+    <ul>
+    </ul>
+    <h3>Project structure</h3>
+    <p></p>
+    <table style="width: 724px; height: 134px;" border="0">
+      <tbody>
+        <tr>
+          <td><span style="font-style: italic;"><span style="font-weight: bold;">File(s)</span></span></td>
+          <td><span style="font-style: italic;"><span style="font-weight: bold;">Description</span></span></td>
+        </tr>
+        <tr>
+          <td style="width: 276px;"><span style="font-family: monospace;">fix_parser.h</span></td>
+          <td style="width: 1446px;">Public API of the FFP library.</td>
+        </tr>
+        <tr>
+          <td><span style="font-family: monospace;">parser/</span></td>
+          <td style="height: 20px;">The directory contains all the
+            implementation files.</td>
+        </tr>
+        <tr>
+          <td><span style="font-family: monospace;">example.c</span></td>
+          <td>Contains some example code.</td>
+        </tr>
+        <tr>
+          <td><span style="font-family: monospace;">test.cpp</span></td>
+          <td>Test main function.<br>
+          </td>
+        </tr>
+        <tr>
+          <td><span style="font-family: monospace;">test/</span></td>
+          <td>Some basic unit and performance tests.</td>
+        </tr>
+      </tbody>
+    </table>
+    <ul>
+    </ul>
+    Currently the library can be compiled using Visual Studio 2012 Express and
+    tested as 32bit executable under Windows 7. Other platforms/compilers have
+    not been tried.<br>
+    <h3>Data representation and API</h3>
+    Input data are simply raw bytes in the form of a pointer and a number of
+    bytes from 1 to (theoretically) the maximum value the <span style="font-family: monospace;">size_t</span>
+    type can hold.<br>
+    <br>
+    Output is in the form of a series of data structures, each representing a
+    Fix message:<br>
+    <img style="width: 552px; height: 516px;" title="Data structure" alt="" src="data_struct.png"><br>
+    Given a buffer pointer <span style="font-family: monospace;">bytes</span>
+    and a number of bytes in the buffer <span style="font-family: monospace;">n</span>,
+    the top-level <span style="font-family: monospace;">fix_message</span>
+    structures are usually iterated over using code like the following (parser
+    API functions highlighted):<br>
+    <br>
+    &nbsp;<code>&nbsp;&nbsp; const struct fix_message* msg;</code><code><br>
+    </code><code><br>
+    </code><code>&nbsp;&nbsp;&nbsp; for(msg = <span style="font-weight: bold;">get_first_fix_message</span>(parser,
+      bytes, n); msg; msg = <span style="font-weight: bold;">get_next_fix_message</span>(parser))</code><code><br>
+    </code><code>&nbsp;&nbsp;&nbsp; {</code><code><br>
+    </code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; if(!msg-&gt;error)</code><code><br>
+    </code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+      dispatch_message(msg);</code><code><br>
+    </code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; else</code><code><br>
+    </code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+      process_message_error(msg-&gt;version, msg-&gt;type, msg-&gt;error);</code><code><br>
+    </code><code>&nbsp;&nbsp;&nbsp; }</code><code><br>
+    </code><br>
+    The loop iterates while <span style="font-family: monospace;">msg</span>
+    pointer returned is not null. Also, notice the check for error inside the
+    loop; more about error processing later. The <span style="font-family: monospace;">fix_message</span>
+    structure itself contains only a few attributes of the Fix message, but it
+    can also be used to find the root node of the message via function <span style="font-family: monospace;">get_fix_message_root_node()</span>.
+    This function returns a pointer to another type, <span style="font-family: monospace;">struct
+      fix_group_node</span>. Essentially, this type is a map from a tag code to
+    the data associated with the tag. The main function to get the data
+    associated with a tag is <span style="font-family: monospace;">get_fix_tag()</span>
+    which returns a pointer to a <span style="font-family: monospace;">struct
+      fix_tag</span>. The tag data may either be a null-terminated string of
+    chars or a pointer to the first element of a group. In the former case the <span
+      style="font-family: monospace;">value</span> member of <span style="font-family: monospace;">struct
+      fix_tag</span> is set to point to the first character of the string and
+    the <span style="font-family: monospace;">length</span> member holds the
+    number of chars in the string excluding the terminating null. There are also
+    a few functions that can extract the tag data converted to a particular
+    type, e.g., a double. If the tag represents a group then the <span style="font-family: monospace;">value</span>
+    pointer is set to null, <span style="font-family: monospace;">length</span>
+    attribute is set to the number of elements in the group and <span style="font-family: monospace;">group</span>
+    attribute points to the first element in the group. The code to iterate over
+    all items in a group may look like the following:<br>
+    <br>
+    <code>&nbsp;&nbsp;&nbsp; const struct fix_group_node* pnode;</code><code></code><br>
+    <code></code><code>&nbsp;&nbsp;&nbsp; const struct fix_tag* pt = <span style="font-weight: bold;">get_fix_tag</span>(current_node,
+      384);&nbsp;&nbsp;&nbsp; // assuming "384" is a group tag</code><code></code><br>
+    <code></code><code></code><br>
+    <code></code><code>&nbsp;&nbsp;&nbsp; if(!pt)&nbsp;&nbsp;&nbsp; // the tag
+      must be present, even if the group is empty</code><code></code><br>
+    <code></code><code>&nbsp;&nbsp;&nbsp; {</code><code></code><br>
+    <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; printf("No group
+      tag\n");&nbsp;&nbsp;&nbsp; // error</code><code></code><br>
+    <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; return;</code><code></code><br>
+    <code></code><code>&nbsp;&nbsp;&nbsp; }</code><code></code><br>
+    <code></code><code></code><br>
+    <code></code><code>&nbsp;&nbsp;&nbsp; for(pnode = pt-&gt;group; pnode; pnode
+      = <span style="font-weight: bold;">get_next_fix_node</span>(pnode))&nbsp;&nbsp;&nbsp;
+      // loop over all group nodes</code><code></code><br>
+    <code></code><code>&nbsp;&nbsp;&nbsp; {</code><code></code><br>
+    <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // process node
+      here</code><code></code><br>
+    <code></code><code>&nbsp;&nbsp;&nbsp; }</code><code></code><br>
+    <code></code><br>
+    For more detailed examples please refer to the <span style="font-family: monospace;">example.c</span>
+    file.<br>
+    <h3>Parser control tables</h3>
+    The parser is controlled by a set of tables describing valid message
+    formats. To simplify parser table development a number of helpful macro is
+    provided. In the following examples only those macro will be used.<br>
+    <br>
+    To create a new instance of the parser the user has to specify a parser
+    table entry point in the form of a function, which, given a Fix message
+    version and type, returns its associated parser table entry. This function
+    is called a classifier function, or simply classifier. One example of the
+    function may look like this:<br>
+    <br>
+    <div style="margin-left: 40px;"><code>const struct fix_tag_classifier*
+        example_classifier_func(fix_message_version version, const char*
+        msg_type)</code><code></code><br>
+      <code></code><code>{</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; if(version != FIX_4_4)</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; return
+        NULL;&nbsp;&nbsp;&nbsp; // only v4.4 is accepted</code><code></code><br>
+      <code></code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; if(msg_type[1] != 0)</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; return
+        NULL;&nbsp;&nbsp;&nbsp; // only one-symbol types in our example</code><code></code><br>
+      <code></code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; switch(msg_type[0])</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; {</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; case 'A':</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; return
+        PARSER_TABLE_ADDRESS(Logon);</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; case '5':</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; return
+        PARSER_TABLE_ADDRESS(Logout);</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; case 'D':</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; return
+        PARSER_TABLE_ADDRESS(NewOrderSingle);</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; default:</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; return NULL;</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; }</code><code></code><br>
+      <code></code><code>}</code><code></code><br>
+      <code></code></div>
+    <br>
+    In this simple example only three messages are expected (<span style="font-family: monospace;">Logon</span>,
+    <span style="font-family: monospace;">Logout </span>and <span style="font-family: monospace;">NewOrderSingle</span>),
+    in a real production code there will certainly be more of them. The
+    classifier refers to three parser table entries. A simple entry definition (<span
+      style="font-family: monospace;">Logout </span>message) may look like the
+    following:<br>
+    <br>
+    <div style="margin-left: 40px;"><code>MESSAGE(Logout)</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; VALID_TAGS(Logout)</code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // header</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+        TAG(49)&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // "SenderCompID"</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+        TAG(56)&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // "TargetCompID"</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+        TAG(34)&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // "MsgSeqNum"</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+        TAG(347)&nbsp;&nbsp;&nbsp; &nbsp;&nbsp; // "MessageEncoding"</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // message body</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+        TAG(58)&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; // "Text"</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+        TAG(354)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // "EncodedTextLen"</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp;
+        TAG(355)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; // "EncodedText"</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; END_VALID_TAGS&nbsp;&nbsp;&nbsp; </code><code></code><br>
+      <code></code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; DATA_TAGS(Logout)</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;&nbsp; DATA_TAG(354,
+        355)</code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; END_DATA_TAGS</code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; </code><code></code><br>
+      <code></code><code>&nbsp;&nbsp;&nbsp; NO_GROUPS(Logout)</code><code></code><br>
+      <code></code><code>END_MESSAGE(Logout);</code></div>
+    <br>
+    The specified tags will be checked at run-time, with error reported if an
+    unexpected tag (i.e., not in the specification like the above) is found. It
+    should be noted that no verification is done on the data associated with a
+    tag, a user can utilise the conversion functions provided by FFP library for
+    that purpose.<br>
+    <br>
+    For more examples of message entry definitions, including those with groups,
+    please refer to <span style="font-family: monospace;">example.c</span>
+    file.<br>
+    <h3>Error handling</h3>
+    There are two types of errors reported by the parser:<br>
+    <ul>
+      <li>Message errors;</li>
+      <li>Parser errors.</li>
+    </ul>
+    <p>Message errors are reported via a non-null <span style="font-family: monospace;">error</span>
+      pointer of the <span style="font-family: monospace;">struct fix_message</span>,
+      and the errors are "recoverable", i.e. the parser itself remains in a
+      valid state after this type of error is detected and the message
+      processing can continue. On the contrary, parser errors are not
+      recoverable and the only valid operation after such an error has occurred
+      is closing the parser. Parser errors are indicated via a non-null pointer
+      returned from the <span style="font-family: monospace;">get_fix_parser_error()</span>
+      function.</p>
+    <h3> Future FFP development</h3>
+    <h4>Short term:</h4>
+    <ul>
+      <li>Testing. So far the library has only a few very basic tests using some
+        Fix messages I picked up somewhere on the Web. That is clearly not
+        enough. For a better test, a complete implementation of a real-life
+        protocol is needed, along with a large set of messages conforming to
+        this protocol to test the implementation. Companies are understandably
+        reluctant to publish their Fix messages, but without it the correctness
+        of the code cannot be reliably verified.</li>
+      <li>Profiling and optimisation. Though, there is no point in doing that
+        before the code is well tested.</li>
+      <li>Add support for other compilers/platforms (?).</li>
+    </ul>
+    <h4>Long term:</h4>
+    <ul>
+      <li>Will see. :)</li>
+    </ul>
+    <br>
+    <hr style="width: 100%; height: 1%; color: black; margin-left: 0px; margin-right: auto;">
+    <p><span style="font-family: monospace;">Copyright (c) 2013, Maxim Konakov</span></p>
+    <p><span style="font-family: monospace;">All rights reserved.</span></p>
+    <p><span style="font-family: monospace;">Redistribution and use in source
+        and binary forms, with or without modification, are permitted provided
+        that the following conditions are met:</span></p>
+    <ul>
+      <li><span style="font-family: monospace;">Redistributions of source code
+          must retain the above copyright notice, this list of conditions and
+          the following disclaimer.</span></li>
+      <li><span style="font-family: monospace;">Redistributions in binary form
+          must reproduce the above copyright notice, this list of conditions and
+          the following disclaimer in the documentation and/or other materials
+          provided with the distribution.</span></li>
+    </ul>
+    <p><span style="font-family: monospace;">THIS SOFTWARE IS PROVIDED BY THE
+        COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+        WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+        MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+        NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY
+        DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+        DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+        OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+        HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
+        STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+        ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+        POSSIBILITY OF SUCH DAMAGE.</span></p>
+    <br>
+    <br>
+    <br>
+  </body>
+</html>
