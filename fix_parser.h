@@ -95,7 +95,7 @@ size_t get_fix_node_size(const struct fix_group_node* node);
 // group node iterator
 const struct fix_group_node* get_next_fix_node(const struct fix_group_node* pnode);
 
-// returns poiter to struct fix_tag or NULL if tag not found
+// returns pointer to struct fix_tag or NULL if tag not found
 const struct fix_tag* get_fix_tag(const struct fix_group_node* node, size_t tag);
 
 // returns tag value as string or NULL if tag is not found
@@ -113,6 +113,22 @@ int get_fix_tag_as_double(const struct fix_group_node* node, size_t tag, double*
 // converts the tag value to a 64 bit signed integer and returns non-zero on success or 
 // 0 if conversion fails or tag not found.
 int get_fix_tag_as_integer(const struct fix_group_node* node, size_t tag, int64_t* p);
+
+// interprets tag as boolean, returning
+// 1 for "true"
+// 0 for "false"
+// -1 if conversion fails or tag not found
+int get_fix_tag_as_boolean(const struct fix_group_node* node, size_t tag);
+
+// time conversion functions
+//// TODO: revise
+// Treats the tag value as UTCTimestamp FIX type and returns the number of 100-nanosecond intervals since January 1, 1601 (for Windows platform),
+// or -1LL if conversion fails or tag not found.
+// Note: The range of dates is more narrow than in the FIX specification.
+int64_t get_fix_tag_as_utc_timestamp(const struct fix_group_node* node, size_t tag);
+
+// Treats the tag value as LocalMktDate FIX type and returns it as time_t or (time_t)-1 if conversion fails or tag not found.
+time_t get_fix_tag_as_local_mkt_date(const struct fix_group_node* node, size_t tag);
 
 // parser table helper macros
 #define GROUP_NODE(name, first_tag)	\

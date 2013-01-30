@@ -108,7 +108,7 @@ void validate_my_message(const fix_message* pm)
 	ensure_tag(node, 49, "A");
 	ensure_tag(node, 56, "B");
 	ensure_tag_as_integer(node, 34, 12LL);
-	ensure_tag(node, 52, "20100318-03:21:11.364");
+	ensure_tag_as_utc_timestamp(node, 52, "20100318-03:21:11.364");
 	ensure_tag(node, 262, "A");
 
 	size_t i = 0;

@@ -42,6 +42,7 @@ const fix_tag_classifier* get_dummy_classifier(fix_message_version, const char*)
 void ensure_tag(const fix_group_node* node, size_t tag, const char* value);
 const struct fix_group_node* ensure_group_tag(const fix_group_node* node, size_t tag, size_t len);
 void ensure_tag_as_integer(const fix_group_node* node, size_t tag, const int64_t value);
+void ensure_tag_as_utc_timestamp(const fix_group_node* node, size_t tag, const char* value);
 
 // validator factories
 typedef std::function< void (const fix_group_node*, size_t) > tag_validator;

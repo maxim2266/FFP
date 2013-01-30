@@ -61,7 +61,7 @@ void validate_message(const struct fix_message* pm)
 	ensure(get_fix_node_size(node) == 12);
 	ensure_tag(node, 34, "215");
 	ensure_tag(node, 49, "CLIENT12");
-	ensure_tag(node, 52, "20100225-19:41:57.316");
+	ensure_tag_as_utc_timestamp(node, 52, "20100225-19:41:57.316");
 	ensure_tag(node, 56, "B");
 	ensure_tag(node, 1, "Marcel");
 	ensure_tag(node, 11, "13346");
@@ -70,7 +70,7 @@ void validate_message(const struct fix_message* pm)
 	ensure_tag(node, 44, "5");
 	ensure_tag(node, 54, "1");
 	ensure_tag(node, 59, "0");
-	ensure_tag(node, 60, "20100225-19:39:52.020");
+	ensure_tag_as_utc_timestamp(node, 60, "20100225-19:39:52.020");
 }
 
 static
@@ -133,7 +133,6 @@ void invalid_message_test()
 	ensure(!get_next_fix_message(parser));
 	free_fix_parser(parser);
 }
-
 
 // batch
 void all_simple_tests()

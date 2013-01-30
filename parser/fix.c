@@ -25,6 +25,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #include <malloc.h>
 #include <memory.h>
+#include <time.h>
 #include <assert.h>
 
 // string buffer ----------------------------------------------------------------------------------
@@ -232,24 +233,152 @@ int get_fix_tag_as_real(const struct fix_group_node* node, size_t tag, int64_t* 
 
 int get_fix_tag_as_double(const struct fix_group_node* node, size_t tag, double* p_value)
 {
-	if(p_value)
-	{
-		static const double mult[] = { 0., 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15 };
+	static const double mult[] = { 0., 1e-1, 1e-2, 1e-3, 1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 1e-11, 1e-12, 1e-13, 1e-14, 1e-15 };
 
-		int64_t val;
-		const int num_frac = get_fix_tag_as_real(node, tag, &val);
+	int64_t val;
+	int num_frac;
 
-		assert(num_frac <= 15);
+	if(!p_value)
+		return -1;
 
-		if(num_frac > 0)
-			*p_value = mult[num_frac] * (double)val;
-		else if(num_frac == 0)
-			*p_value = (double)val;
+	num_frac = get_fix_tag_as_real(node, tag, &val);
+
+	assert(num_frac <= 15);
+
+	if(num_frac > 0)
+		*p_value = mult[num_frac] * (double)val;
+	else if(num_frac == 0)
+		*p_value = (double)val;
 	
-		return num_frac;
-	}
-
-	return -1;
+	return num_frac;
 }
 
+int get_fix_tag_as_boolean(const struct fix_group_node* node, size_t tag)
+{
+	const struct fix_tag* pt;
+
+	if(!node)
+		return -1;
+
+	pt = get_fix_tag(node, tag);
+
+	if(!pt || !pt->value || pt->length != 1)
+		return -1;
+
+	switch(*pt->value)
+	{
+	case 'Y':
+		return 1;
+	case 'N':
+		return 0;
+	default:
+		return -1;
+	}
+}
+
+// time conversion functions
+#define IS_DIGIT(c)		((c) >= '0' && (c) <= '9')
+#define DIGIT_TO_INT(c)	((unsigned char)((c) - '0'))
+
+#define READ_2_DIGITS(r)	\
+	if(!IS_DIGIT(s[0]) || !IS_DIGIT(s[1]))	\
+		return -1LL;	\
+	r = 10 * DIGIT_TO_INT(s[0]) + DIGIT_TO_INT(s[1]);	\
+	s += 2
+
+#define READ_3_DIGITS(r)	\
+	if(!IS_DIGIT(s[0]) || !IS_DIGIT(s[1]) || !IS_DIGIT(s[2]))	\
+		return -1LL;	\
+	r = 100 * DIGIT_TO_INT(s[0]) + 10 * DIGIT_TO_INT(s[1]) + DIGIT_TO_INT(s[2]);	\
+	s += 3
+
+#define READ_4_DIGITS(r)	\
+	if(!IS_DIGIT(s[0]) || !IS_DIGIT(s[1]) || !IS_DIGIT(s[2]) || !IS_DIGIT(s[3]))	\
+		return -1LL;	\
+	r = 1000 * DIGIT_TO_INT(s[0]) + 100 * DIGIT_TO_INT(s[1]) + 10 * DIGIT_TO_INT(s[2]) + DIGIT_TO_INT(s[3]);	\
+	s += 4
+
+#define MATCH(c)	\
+	if(*s++ != c)	\
+		return -1LL
+
+#ifdef _WIN32
+
+#define STRICT
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+
+int64_t get_fix_tag_as_utc_timestamp(const struct fix_group_node* node, size_t tag)
+{
+	/* From the spec:
+		String field representing Time/date combination represented in UTC (Universal Time Coordinated, also known as "GMT") 
+		in either YYYYMMDD-HH:MM:SS (whole seconds) or YYYYMMDD-HH:MM:SS.sss (milliseconds) format, colons, dash, and period required.
+
+		Valid values:
+		* YYYY = 0000-9999, MM = 01-12, DD = 01-31, HH = 00-23, MM = 00-59, SS = 00-60 (60 only if UTC leap second) (without milliseconds).
+		* YYYY = 0000-9999, MM = 01-12, DD = 01-31, HH = 00-23, MM = 00-59, SS = 00-60 (60 only if UTC leap second), sss=000-999 (indicating milliseconds).
+	*/
+
+	SYSTEMTIME st;
+	FILETIME ft;
+	const char* s = get_fix_tag_as_string(node, tag);
+
+	if(!s)
+		return -1LL;
+
+	READ_4_DIGITS(st.wYear);
+	READ_2_DIGITS(st.wMonth);
+	READ_2_DIGITS(st.wDay);
+	MATCH('-');
+	READ_2_DIGITS(st.wHour);
+	MATCH(':');
+	READ_2_DIGITS(st.wMinute);
+	MATCH(':');
+	READ_2_DIGITS(st.wSecond);
+
+	switch(*s++)
+	{
+	case 0:
+		st.wMilliseconds = 0;
+		break;
+	case '.':
+		READ_3_DIGITS(st.wMilliseconds);
+		break;
+	default:
+		return -1LL;
+	}
+
+	st.wDayOfWeek = 0;
+
+	return SystemTimeToFileTime(&st, &ft) ? 
+		(((int64_t)ft.dwHighDateTime << 32) | (int64_t)ft.dwLowDateTime)
+		: 
+		-1LL;
+}
+
+#endif	// ifdef _WIN32
+
+time_t get_fix_tag_as_local_mkt_date(const struct fix_group_node* node, size_t tag)
+{
+	/* From the spec:
+		String field represening a Date of Local Market (as oppose to UTC) in YYYYMMDD format. This is the "normal" date field used by the FIX Protocol.
+		Valid values:
+		YYYY = 0000-9999, MM = 01-12, DD = 01-31.
+	*/
+
+	struct tm t;
+	const char* s = get_fix_tag_as_string(node, tag);
+
+	if(!s)
+		return -1LL;
+
+	READ_4_DIGITS(t.tm_year);
+	READ_2_DIGITS(t.tm_mon);
+	READ_2_DIGITS(t.tm_mday);
+
+	t.tm_year -= 1900;
+	t.tm_hour = t.tm_min = t.tm_sec = t.tm_yday = t.tm_isdst = 0;
+
+	return _mkgmtime(&t);
+}
 

@@ -116,6 +116,35 @@ void ensure_tag_as_real(const fix_group_node* node, size_t tag, const int64_t va
 	ensure(abs(expected_val - my_val) < pow(10.0, -num_frac));
 }
 
+#ifdef _WIN32
+
+#define STRICT
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+
+void ensure_tag_as_utc_timestamp(const fix_group_node* node, size_t tag, const char* value)
+{
+	const int64_t ts = get_fix_tag_as_utc_timestamp(node, tag);
+
+	ensure(ts != -1LL);
+
+	FILETIME ft;
+
+	ft.dwLowDateTime = (DWORD)ts;
+	ft.dwHighDateTime = (DWORD)(ts >> 32);
+
+	SYSTEMTIME st;
+
+	ensure(FileTimeToSystemTime(&ft, &st) != 0);
+
+	char buff[50];
+
+	ensure(sprintf_s(buff, "%04hu%02hu%02hu-%02hu:%02hu:%02hu.%03hu", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds) > 0);
+	ensure(strcmp(buff, value) == 0);
+}
+
+#endif	// ifdef _WIN32
+
 // validator factories
 tag_validator make_validator(const char* value)
 {
