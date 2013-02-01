@@ -23,7 +23,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #include "test_utils.h"
 
-#include <time.h>
 #include <string>
 
 // message
@@ -154,8 +153,6 @@ void simple_group_test2()
 	free_fix_parser(parser);
 }
 
-#define WITH_VALIDATION
-
 static 
 void speed_test()
 {
@@ -175,7 +172,7 @@ void speed_test()
 	const char* const end = s.c_str() + s.size();
 	fix_parser* const parser = create_fix_parser(my_classifier);
 	int count = 0;
-	clock_t t = clock();
+	clock_t t_start = clock();
 
 	for(int i = 0; i < N; ++i)
 	{
@@ -196,18 +193,13 @@ void speed_test()
 		}
 	}
 
-	t = clock() - t;
+	const clock_t t_end = clock();
+
 	free_fix_parser(parser);
 	ensure(count == N * M);
 
-	const double 
-		total_time = (double)t/CLOCKS_PER_SEC,
-		msg_time = total_time/(N * M),
-		msg_per_sec = 1./msg_time;
-
-	printf("Running time for %u messages: %.3f s (%.3f us/message, %u messages/s)\n", N * M, total_time, msg_time * 1000000., (unsigned)msg_per_sec);
+	print_running_time("Message with groups", N * M, t_start, t_end);
 }
-
 
 // batch
 void all_group_tests()

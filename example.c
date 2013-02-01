@@ -41,7 +41,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 MESSAGE(Logout)
 	// This section contains _all_ possible tags valid for this type of message
 	VALID_TAGS(Logout)	// The parameter must match the name of the message
-		// header
+		// header (tags 8, 9 and 35 should not be included)
 		TAG(49)		// "SenderCompID"
 		TAG(56)		// "TargetCompID"
 		TAG(34)		// "MsgSeqNum"

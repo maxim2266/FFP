@@ -134,10 +134,104 @@ void invalid_message_test()
 	free_fix_parser(parser);
 }
 
+// simple message spec
+MESSAGE(simple_message_spec)
+	VALID_TAGS(simple_message_spec)
+		TAG(34)
+		TAG(49)
+		TAG(52)
+		TAG(56)
+		TAG(1)
+		TAG(11)
+		TAG(21)
+		TAG(40)
+		TAG(44)
+		TAG(54)
+		TAG(59)
+		TAG(60)
+	END_VALID_TAGS
+
+	NO_DATA_TAGS(simple_message_spec)
+	NO_GROUPS(simple_message_spec)
+END_NODE(simple_message_spec);
+
+const struct fix_tag_classifier* simple_message_classifier(fix_message_version version, const char* msg_type)
+{
+	return (version == FIX_4_4 && msg_type[0] == 'D' && msg_type[1] == 0) ? PARSER_TABLE_ADDRESS(simple_message_spec) : NULL; 
+}
+
+// speed test
+static
+void speed_test()
+{
+	const int M = 10;
+	std::string s(msg, sizeof(msg) - 1);
+
+	for(int i = 0; i < M - 1; ++i)
+		s.append(msg, sizeof(msg) - 1);
+
+	const int step = 101, 
+#ifdef _DEBUG
+		N = 1000;
+#else
+		N = 100000;
+#endif
+
+	const char* const end = s.c_str() + s.size();
+	fix_parser* const parser = create_fix_parser(simple_message_classifier);
+	int count = 0;
+	clock_t t_start = clock();
+
+	for(int i = 0; i < N; ++i)
+	{
+		for(const char* p = s.c_str(); p < end; p += step)
+		{
+			for(const fix_message* pm = get_first_fix_message(parser, p, std::min(step, end - p)); pm; pm = get_next_fix_message(parser))
+			{
+				ensure(!pm->error);
+#ifdef WITH_VALIDATION
+				ensure(pm->version == FIX_4_4);
+				ensure(strcmp(pm->type, "D") == 0);
+
+				const fix_group_node* node = get_fix_message_root_node(pm);
+
+				ensure(node != nullptr);
+				ensure(get_fix_node_size(node) == 12);
+				ensure_tag(node, 34, "215");
+				ensure_tag(node, 49, "CLIENT12");
+				ensure_tag_as_utc_timestamp(node, 52, "20100225-19:41:57.316");
+				ensure_tag(node, 56, "B");
+				ensure_tag(node, 1, "Marcel");
+				ensure_tag(node, 11, "13346");
+				ensure_tag(node, 21, "1");
+				ensure_tag(node, 40, "2");
+				ensure_tag(node, 44, "5");
+				ensure_tag(node, 54, "1");
+				ensure_tag(node, 59, "0");
+				ensure_tag_as_utc_timestamp(node, 60, "20100225-19:39:52.020");
+#else
+				ensure(get_fix_node_size(get_fix_message_root_node(pm)) == 12);
+#endif
+				++count;
+			}
+	
+			ensure(!get_fix_parser_error(parser));
+		}
+	}
+
+	const clock_t t_end = clock();
+
+	free_fix_parser(parser);
+	ensure(count == N * M);
+
+	print_running_time("Simple message", N * M, t_start, t_end);
+}
+
 // batch
 void all_simple_tests()
 {
 	basic_test();
 	splitter_test();
 	invalid_message_test();
+	speed_test();
 }

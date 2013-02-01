@@ -182,7 +182,6 @@ time_t get_fix_tag_as_local_mkt_date(const struct fix_group_node* node, size_t t
 #define NO_GROUPS(name)	\
 	static const struct fix_tag_classifier* get_group_classifier_in_ ## name(size_t __tag) { __tag; return NULL; }
 
-
 #ifdef __cplusplus 
 }
 #endif

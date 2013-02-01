@@ -65,6 +65,20 @@ const  fix_tag_classifier* get_dummy_classifier(fix_message_version, const char*
 	return &dummy_classifier;
 }
 
+// helpers
+void print_running_time(const char* prefix, size_t num_messages, clock_t begin, clock_t end)
+{
+	const clock_t t = end - begin;
+
+	const double 
+		total_time = (double)t/CLOCKS_PER_SEC,
+		msg_time = total_time/num_messages,
+		msg_per_sec = 1./msg_time;
+
+	printf("[%s] Running time for %u messages: %.3f s (%.3f us/message, %u messages/s)\n", 
+		   prefix, num_messages, total_time, msg_time * 1000000., (unsigned)msg_per_sec);
+}
+
 // tag validation ---------------------------------------------------------------------------------
 void ensure_tag(const fix_group_node* node, size_t tag, const char* value)
 {

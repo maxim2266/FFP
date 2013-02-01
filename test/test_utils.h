@@ -25,6 +25,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #include "../fix_parser.h"
 #include <functional>
+#include <ctime>
 
 // assertion
 template< class T >
@@ -34,6 +35,9 @@ void ensure(T r, const char* msg = nullptr)
 	if(!r)
 		throw std::runtime_error(msg ? msg : "Assertion failed");
 }
+
+// helpers
+void print_running_time(const char* prefix, size_t num_messages, clock_t begin, clock_t end);
 
 // empty classifier
 const fix_tag_classifier* get_dummy_classifier(fix_message_version, const char*);
@@ -50,3 +54,6 @@ typedef std::function< void (const fix_group_node*, size_t) > tag_validator;
 tag_validator make_validator(const char* value);
 tag_validator make_validator(const int64_t value);
 tag_validator make_validator(const int64_t value, int num_frac);
+
+// test configuration
+//#define WITH_VALIDATION
