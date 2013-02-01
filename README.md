@@ -1,7 +1,5 @@
-FFP
-===
-
 Fast FIX (Financial Information Exchange) protocol parser [FFP]
+===============================================================
 
 Fast Fix Parser (FFP) is a library which converts chunks of data (raw bytes) 
 as they arrive from e.g. a socket, into a representation of FIX messages that 
