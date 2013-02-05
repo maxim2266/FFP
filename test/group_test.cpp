@@ -21,120 +21,21 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE 
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "test_utils.h"
+#include "test_messages.h"
 
 #include <string>
 
 // message
-static const char msg[] = "8=FIX.4.2\x01" "9=196\x01" "35=X\x01" "49=A\x01" "56=B\x01" "34=12\x01" "52=20100318-03:21:11.364\x01" "262=A\x01" "268=2\x01" "279=0\x01" "269=0\x01" "278=BID\x01" "55=EUR/USD\x01" "270=1.37215\x01" "15=EUR\x01" "271=2500000\x01" "346=1\x01" "279=0\x01" "269=1\x01" "278=OFFER\x01" "55=EUR/USD\x01" "270=1.37224\x01" "15=EUR\x01" "271=2503200\x01" "346=1\x01" "10=171\x01";
-
-// parser specs
-GROUP_NODE(my_node, 279)
-	VALID_TAGS(my_node)
-		TAG(279)
-		TAG(269)
-		TAG(278)
-		TAG(55)
-		TAG(270)
-		TAG(15)
-		TAG(271)
-		TAG(346)
-	END_VALID_TAGS
-
-	NO_DATA_TAGS(my_node)
-	NO_GROUPS(my_node)
-END_NODE(my_node);
-
-MESSAGE(my_root)
-	VALID_TAGS(my_root)
-		TAG(49)
-		TAG(56)
-		TAG(34)
-		TAG(52)
-		TAG(262)
-		TAG(268)	// group
-	END_VALID_TAGS
-
-	NO_DATA_TAGS(my_root)
-
-	GROUPS(my_root)
-		GROUP_TAG(268, my_node)
-	END_GROUPS
-END_NODE(my_root);
-
-const struct fix_tag_classifier* my_classifier(fix_message_version version, const char* msg_type)
-{
-	return (version == FIX_4_2 && msg_type[0] == 'X' && msg_type[1] == 0) ? PARSER_TABLE_ADDRESS(my_root) : NULL; 
-}
-
 // test
-struct item_value
-{
-	size_t tag;
-	tag_validator validator;
-};
-
-const struct item_value values[][8] = 
-{
-	{
-		{ 279, make_validator(0LL) },
-		{ 269, make_validator(0LL) },
-		{ 278, make_validator("BID") },
-		{ 55,  make_validator("EUR/USD") },
-		{ 270, make_validator(137215LL, 5) },	// "1.37215"
-		{ 15,  make_validator("EUR") },
-		{ 271, make_validator(2500000LL) },
-		{ 346, make_validator(1LL) }
-	},
-	{
-		{ 279, make_validator(0LL) },
-		{ 269, make_validator(1LL) },
-		{ 278, make_validator("OFFER") },
-		{ 55,  make_validator("EUR/USD") },
-		{ 270, make_validator(137224LL, 5) },	// "1.37224"
-		{ 15,  make_validator("EUR") },
-		{ 271, make_validator(2503200LL) },
-		{ 346, make_validator(1LL) }
-	}
-};
-
-static
-void validate_my_message(const fix_message* pm)
-{
-	const fix_group_node* node = get_fix_message_root_node(pm);
-
-	ensure(get_fix_node_size(node) == 6);
-	ensure_tag(node, 49, "A");
-	ensure_tag(node, 56, "B");
-	ensure_tag_as_integer(node, 34, 12LL);
-	ensure_tag_as_utc_timestamp(node, 52, "20100318-03:21:11.364");
-	ensure_tag(node, 262, "A");
-
-	size_t i = 0;
-
-	for(node = ensure_group_tag(node, 268, 2); node; ++i, node = get_next_fix_node(node))
-	{
-		ensure(i < 2);
-		ensure(get_fix_node_size(node) == 8);
-
-		for(size_t j = 0; j < 8; ++j)
-		{
-			const item_value* p = &values[i][j];
-
-			p->validator(node, p->tag);
-		}
-	}
-}
-
 static
 void simple_group_test()
 {
-	fix_parser* parser = create_fix_parser(my_classifier);
-	const fix_message* pm = get_first_fix_message(parser, msg, sizeof(msg) - 1);
+	fix_parser* parser = create_fix_parser(message_with_groups_classifier);
+	const fix_message* pm = get_first_fix_message(parser, message_with_groups, message_with_groups_size);
 
 	ensure(pm);
 	ensure(pm->error == nullptr);
-	validate_my_message(pm);
+	validate_message_with_groups(pm);
 	ensure(!get_next_fix_message(parser));
 	free_fix_parser(parser);
 }
@@ -143,12 +44,12 @@ static
 void simple_group_test2()
 {
 	const char m[] = "8=FIX.4.2\x01" "9=196\x01" "35=X\x01" "49=A\x01" "56=B\x01" "52=20100318-03:21:11.364\x01" "262=A\x01" "268=2\x01" "279=0\x01" "269=0\x01" "278=BID\x01" "55=EUR/USD\x01" "270=1.37215\x01" "15=EUR\x01" "271=2500000\x01" "346=1\x01" "279=0\x01" "269=1\x01" "278=OFFER\x01" "55=EUR/USD\x01" "270=1.37224\x01" "15=EUR\x01" "271=2503200\x01" "346=1\x01" "34=12\x01" "10=171\x01";
-	fix_parser* parser = create_fix_parser(my_classifier);
+	fix_parser* parser = create_fix_parser(message_with_groups_classifier);
 	const fix_message* pm = get_first_fix_message(parser, m, sizeof(m) - 1);
 
 	ensure(pm);
 	ensure(pm->error == nullptr);
-	validate_my_message(pm);
+	validate_message_with_groups(pm);
 	ensure(!get_next_fix_message(parser));
 	free_fix_parser(parser);
 }
@@ -157,10 +58,7 @@ static
 void speed_test()
 {
 	const int M = 10;
-	std::string s(msg, sizeof(msg) - 1);
-
-	for(int i = 0; i < M - 1; ++i)
-		s.append(msg, sizeof(msg) - 1);
+	std::string s(copy_message_with_groups(M));
 
 	const int step = 101, 
 #ifdef _DEBUG
@@ -170,7 +68,7 @@ void speed_test()
 #endif
 
 	const char* const end = s.c_str() + s.size();
-	fix_parser* const parser = create_fix_parser(my_classifier);
+	fix_parser* const parser = create_fix_parser(message_with_groups_classifier);
 	int count = 0;
 	clock_t t_start = clock();
 
@@ -182,7 +80,7 @@ void speed_test()
 			{
 				ensure(!pm->error);
 #ifdef WITH_VALIDATION
-				validate_my_message(pm);
+				validate_message_with_groups(pm);
 #else
 				ensure(get_fix_node_size(get_fix_message_root_node(pm)) == 6);
 #endif

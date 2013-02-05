@@ -107,11 +107,13 @@
     <ClCompile Include="test.cpp" />
     <ClCompile Include="test\group_test.cpp" />
     <ClCompile Include="test\simple_test.cpp" />
+    <ClCompile Include="test\test_messages.cpp" />
     <ClCompile Include="test\test_utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="fix_parser.h" />
     <ClInclude Include="parser\fix_parser_impl.h" />
+    <ClInclude Include="test\test_messages.h" />
     <ClInclude Include="test\test_utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

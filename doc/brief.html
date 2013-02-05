@@ -18,16 +18,16 @@
     Yes, there are many other Fix parsers out there. This library aims to
     address the following issues with other similar designs:<br>
     <ul>
-      <li>Speed. This parser can process about 250,000 messages with groups per
+      <li>Speed. This parser can process about 260,000 messages with groups per
         second in a single thread on my rather old Core i5-430M 2.26GHz laptop,
-        and about 400,000 simple messages without groups. The processing time is
+        and about 520,000 simple messages without groups. The processing time is
         more or less a linear function of the message length.</li>
       <li>It does not impose any particular I/O or threading model. In fact, it
         does no I/O at all, and there are no threads running in the background.
         This greatly simplifies integration of the library into an existing code
         base. </li>
-      <li>The parser does not expect every chunk of input data to be a complete
-        Fix message. The data can be fed into the parser as they become
+      <li>The parser does not expect every chunk of its input data to be a
+        complete Fix message. The data can be fed into the parser as they become
         available, and the parser splits or combines the input into complete
         messages.</li>
       <li>The parser is written in plain C, not in C++. Consequently, it does

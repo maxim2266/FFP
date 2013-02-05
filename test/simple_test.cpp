@@ -21,63 +21,25 @@ LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE 
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "../parser/fix_parser_impl.h"
-#include "test_utils.h"
-
+#include "test_messages.h"
 #include <string.h>
 #include <stdexcept>
 
 // FIX message for tests
-static const char msg[] = "8=FIX.4.4\x01" "9=122\x01" "35=D\x01" "34=215\x01" "49=CLIENT12\x01" "52=20100225-19:41:57.316\x01" "56=B\x01" 
-						  "1=Marcel\x01" "11=13346\x01" "21=1\x01" "40=2\x01" "44=5\x01" "54=1\x01" "59=0\x01" "60=20100225-19:39:52.020\x01" "10=072\x01";
-
-static const char* const msg_begin = &msg[21];
-static const char* const msg_end = &msg[sizeof(msg) - 8];
-
-static
-void ensure_buffer(const string_buffer& buffer)
-{
-	for(int i = 0; i < msg_end - msg_begin; ++i)
-	{
-		if(msg_begin[i] == SOH)
-			ensure(buffer.str[i] == (char)0);
-		else
-			ensure(buffer.str[i] == msg_begin[i]);
-	}
-}
-
 static
 void validate_message(const struct fix_message* pm)
 {
 	const fix_parser* const parser = (const fix_parser*) ((const char*)pm - offsetof(fix_parser, message));
 
-	ensure(pm->version == FIX_4_4);
-	ensure(strcmp(pm->type, "D") == 0);
 	ensure_buffer(parser->buffer);
-
-	const fix_group_node* node = get_fix_message_root_node(pm);
-
-	ensure(node != nullptr);
-	ensure(get_fix_node_size(node) == 12);
-	ensure_tag(node, 34, "215");
-	ensure_tag(node, 49, "CLIENT12");
-	ensure_tag_as_utc_timestamp(node, 52, "20100225-19:41:57.316");
-	ensure_tag(node, 56, "B");
-	ensure_tag(node, 1, "Marcel");
-	ensure_tag(node, 11, "13346");
-	ensure_tag(node, 21, "1");
-	ensure_tag(node, 40, "2");
-	ensure_tag(node, 44, "5");
-	ensure_tag(node, 54, "1");
-	ensure_tag(node, 59, "0");
-	ensure_tag_as_utc_timestamp(node, 60, "20100225-19:39:52.020");
+	validate_simple_message(pm);
 }
 
 static
 void basic_test()
 {
 	fix_parser* parser = create_fix_parser(get_dummy_classifier);
-	const fix_message* pm = get_first_fix_message(parser, msg, sizeof(msg) - 1);
+	const fix_message* pm = get_first_fix_message(parser, simple_message, simple_message_size);
 
 	ensure(pm != nullptr);
 	ensure(!get_fix_parser_error(parser));
@@ -91,12 +53,7 @@ void basic_test()
 static
 void splitter_test()
 {
-	std::string s(msg);
-
-	s += msg;
-	s += msg;
-	s += msg;
-
+	std::string s(copy_simple_message(4));
 	fix_parser* parser = create_fix_parser(get_dummy_classifier);
 
 	ensure(parser != nullptr);
@@ -134,41 +91,12 @@ void invalid_message_test()
 	free_fix_parser(parser);
 }
 
-// simple message spec
-MESSAGE(simple_message_spec)
-	VALID_TAGS(simple_message_spec)
-		TAG(34)
-		TAG(49)
-		TAG(52)
-		TAG(56)
-		TAG(1)
-		TAG(11)
-		TAG(21)
-		TAG(40)
-		TAG(44)
-		TAG(54)
-		TAG(59)
-		TAG(60)
-	END_VALID_TAGS
-
-	NO_DATA_TAGS(simple_message_spec)
-	NO_GROUPS(simple_message_spec)
-END_NODE(simple_message_spec);
-
-const struct fix_tag_classifier* simple_message_classifier(fix_message_version version, const char* msg_type)
-{
-	return (version == FIX_4_4 && msg_type[0] == 'D' && msg_type[1] == 0) ? PARSER_TABLE_ADDRESS(simple_message_spec) : NULL; 
-}
-
 // speed test
 static
 void speed_test()
 {
 	const int M = 10;
-	std::string s(msg, sizeof(msg) - 1);
-
-	for(int i = 0; i < M - 1; ++i)
-		s.append(msg, sizeof(msg) - 1);
+	const std::string s(copy_simple_message(M));
 
 	const int step = 101, 
 #ifdef _DEBUG
@@ -190,25 +118,7 @@ void speed_test()
 			{
 				ensure(!pm->error);
 #ifdef WITH_VALIDATION
-				ensure(pm->version == FIX_4_4);
-				ensure(strcmp(pm->type, "D") == 0);
-
-				const fix_group_node* node = get_fix_message_root_node(pm);
-
-				ensure(node != nullptr);
-				ensure(get_fix_node_size(node) == 12);
-				ensure_tag(node, 34, "215");
-				ensure_tag(node, 49, "CLIENT12");
-				ensure_tag_as_utc_timestamp(node, 52, "20100225-19:41:57.316");
-				ensure_tag(node, 56, "B");
-				ensure_tag(node, 1, "Marcel");
-				ensure_tag(node, 11, "13346");
-				ensure_tag(node, 21, "1");
-				ensure_tag(node, 40, "2");
-				ensure_tag(node, 44, "5");
-				ensure_tag(node, 54, "1");
-				ensure_tag(node, 59, "0");
-				ensure_tag_as_utc_timestamp(node, 60, "20100225-19:39:52.020");
+				validate_simple_message(pm);
 #else
 				ensure(get_fix_node_size(get_fix_message_root_node(pm)) == 12);
 #endif

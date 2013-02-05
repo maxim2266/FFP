@@ -23,38 +23,24 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #pragma once
 
-#include "../fix_parser.h"
-#include <functional>
-#include <stdexcept>
-#include <ctime>
+#include "test_messages.h"
+#include "../parser/fix_parser_impl.h"
+#include "test_utils.h"
 
-// assertion
-template< class T >
-inline
-void ensure(T r, const char* msg = nullptr)
-{
-	if(!r)
-		throw std::runtime_error(msg ? msg : "Assertion failed");
-}
+// test messages and specifications
+// 1. simple message
+extern const char simple_message[];
+extern const size_t simple_message_size;
 
-// helpers
-void print_running_time(const char* prefix, size_t num_messages, clock_t begin, clock_t end);
+const struct fix_tag_classifier* simple_message_classifier(fix_message_version version, const char* msg_type);
+void ensure_buffer(const string_buffer& buffer);
+void validate_simple_message(const fix_message* pm);
+std::string copy_simple_message(size_t n = 1);
 
-// empty classifier
-const fix_tag_classifier* get_dummy_classifier(fix_message_version, const char*);
+// 2. message with groups
+extern const char message_with_groups[];
+extern const size_t message_with_groups_size;
 
-// tag validators
-void ensure_tag(const fix_group_node* node, size_t tag, const char* value);
-const struct fix_group_node* ensure_group_tag(const fix_group_node* node, size_t tag, size_t len);
-void ensure_tag_as_integer(const fix_group_node* node, size_t tag, const int64_t value);
-void ensure_tag_as_utc_timestamp(const fix_group_node* node, size_t tag, const char* value);
-
-// validator factories
-typedef std::function< void (const fix_group_node*, size_t) > tag_validator;
-
-tag_validator make_validator(const char* value);
-tag_validator make_validator(const int64_t value);
-tag_validator make_validator(const int64_t value, int num_frac);
-
-// test configuration
-//#define WITH_VALIDATION
+const struct fix_tag_classifier* message_with_groups_classifier(fix_message_version version, const char* msg_type);
+void validate_message_with_groups(const fix_message* pm);
+std::string copy_message_with_groups(size_t n = 1);
