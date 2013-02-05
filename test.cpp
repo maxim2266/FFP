@@ -25,6 +25,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 extern void all_simple_tests();
 extern void all_group_tests();
+extern void all_mixed_tests();
 
 int main()
 {
@@ -32,6 +33,7 @@ int main()
 
 	all_simple_tests();
 	all_group_tests();
+	all_mixed_tests();
 
 	return 0;
 }

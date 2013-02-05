@@ -57,4 +57,8 @@ tag_validator make_validator(const int64_t value);
 tag_validator make_validator(const int64_t value, int num_frac);
 
 // test configuration
+#ifdef NDEBUG
 //#define WITH_VALIDATION
+#else
+#define WITH_VALIDATION
+#endif
