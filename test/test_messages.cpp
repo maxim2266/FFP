@@ -71,6 +71,7 @@ void ensure_buffer(const string_buffer& buffer)
 
 void validate_simple_message(const fix_message* pm)
 {
+#ifdef WITH_VALIDATION
 	ensure(pm->version == FIX_4_4);
 	ensure(pm->type[0] == 'D' && pm->type[1] == 0);
 
@@ -90,6 +91,9 @@ void validate_simple_message(const fix_message* pm)
 	ensure_tag(node, 54, "1");
 	ensure_tag(node, 59, "0");
 	ensure_tag_as_utc_timestamp(node, 60, "20100225-19:39:52.020");
+#else
+	ensure(get_fix_node_size(get_fix_message_root_node(pm)) == 12);
+#endif
 }
 
 std::string copy_simple_message(size_t n)
@@ -189,6 +193,7 @@ const struct item_value values[][8] =
 
 void validate_message_with_groups(const fix_message* pm)
 {
+#ifdef WITH_VALIDATION
 	const fix_group_node* node = get_fix_message_root_node(pm);
 
 	ensure(get_fix_node_size(node) == 6);
@@ -212,6 +217,9 @@ void validate_message_with_groups(const fix_message* pm)
 			p->validator(node, p->tag);
 		}
 	}
+#else
+	ensure(get_fix_node_size(get_fix_message_root_node(pm)) == 6);
+#endif
 }
 
 

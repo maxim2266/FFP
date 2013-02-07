@@ -343,6 +343,7 @@ int64_t get_fix_tag_as_utc_timestamp(const struct fix_group_node* node, size_t t
 		break;
 	case '.':
 		READ_3_DIGITS(st.wMilliseconds);
+		MATCH(0);
 		break;
 	default:
 		return -1LL;
@@ -375,6 +376,7 @@ time_t get_fix_tag_as_local_mkt_date(const struct fix_group_node* node, size_t t
 	READ_4_DIGITS(t.tm_year);
 	READ_2_DIGITS(t.tm_mon);
 	READ_2_DIGITS(t.tm_mday);
+	MATCH(0);
 
 	t.tm_year -= 1900;
 	t.tm_hour = t.tm_min = t.tm_sec = t.tm_yday = t.tm_isdst = 0;

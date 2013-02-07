@@ -79,6 +79,50 @@ void print_running_time(const char* prefix, size_t num_messages, clock_t begin, 
 		   prefix, num_messages, total_time, msg_time * 1000000., (unsigned)msg_per_sec);
 }
 
+// message tester
+void test_for_speed(const char* test_type, 
+					const fix_tag_classifier* (*classifier)(fix_message_version, const char*), 
+					std::string (*creator)(size_t), 
+					void (*validator)(const fix_message*))
+{
+	const int M = 10;
+	const std::string s(creator(M));
+
+	const int step = 101, 
+#ifdef _DEBUG
+		N = 1000;
+#else
+		N = 100000;
+#endif
+
+	const char* const end = s.c_str() + s.size();
+	fix_parser* const parser = create_fix_parser(classifier);
+	int count = 0;
+	clock_t t_start = clock();
+
+	for(int i = 0; i < N; ++i)
+	{
+		for(const char* p = s.c_str(); p < end; p += step)
+		{
+			for(const fix_message* pm = get_first_fix_message(parser, p, std::min(step, end - p)); pm; pm = get_next_fix_message(parser))
+			{
+				ensure(!pm->error);
+				validator(pm);
+				++count;
+			}
+	
+			ensure(!get_fix_parser_error(parser));
+		}
+	}
+
+	const clock_t t_end = clock();
+
+	free_fix_parser(parser);
+	ensure(count == N * M);
+
+	print_running_time(test_type, N * M, t_start, t_end);
+}
+
 // tag validation ---------------------------------------------------------------------------------
 void ensure_tag(const fix_group_node* node, size_t tag, const char* value)
 {

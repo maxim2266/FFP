@@ -56,6 +56,12 @@ tag_validator make_validator(const char* value);
 tag_validator make_validator(const int64_t value);
 tag_validator make_validator(const int64_t value, int num_frac);
 
+// message tester
+void test_for_speed(const char* test_type, 
+					const fix_tag_classifier* (*classifier)(fix_message_version, const char*), 
+					std::string (*creator)(size_t), 
+					void (*validator)(const fix_message*));
+
 // test configuration
 #ifdef NDEBUG
 //#define WITH_VALIDATION

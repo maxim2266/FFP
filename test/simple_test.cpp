@@ -95,46 +95,7 @@ void invalid_message_test()
 static
 void speed_test()
 {
-	const int M = 10;
-	const std::string s(copy_simple_message(M));
-
-	const int step = 101, 
-#ifdef _DEBUG
-		N = 1000;
-#else
-		N = 100000;
-#endif
-
-	const char* const end = s.c_str() + s.size();
-	fix_parser* const parser = create_fix_parser(simple_message_classifier);
-	int count = 0;
-	clock_t t_start = clock();
-
-	for(int i = 0; i < N; ++i)
-	{
-		for(const char* p = s.c_str(); p < end; p += step)
-		{
-			for(const fix_message* pm = get_first_fix_message(parser, p, std::min(step, end - p)); pm; pm = get_next_fix_message(parser))
-			{
-				ensure(!pm->error);
-#ifdef WITH_VALIDATION
-				validate_simple_message(pm);
-#else
-				ensure(get_fix_node_size(get_fix_message_root_node(pm)) == 12);
-#endif
-				++count;
-			}
-	
-			ensure(!get_fix_parser_error(parser));
-		}
-	}
-
-	const clock_t t_end = clock();
-
-	free_fix_parser(parser);
-	ensure(count == N * M);
-
-	print_running_time("Simple message", N * M, t_start, t_end);
+	test_for_speed("Simple message", simple_message_classifier, copy_simple_message, validate_simple_message);
 }
 
 // batch

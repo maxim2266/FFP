@@ -22,7 +22,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 */
 
 #include "test_messages.h"
-#include <string.h>
 
 static
 std::string create_test_data(size_t n)
@@ -84,42 +83,7 @@ void validate_mixed_message(const fix_message* pm)
 static
 void mixed_speed_test()
 {
-	const int M = 10;
-	const std::string s(create_test_data(M));
-
-	const int step = 101, 
-#ifdef _DEBUG
-		N = 1000;
-#else
-		N = 100000;
-#endif
-
-	const char* const end = s.c_str() + s.size();
-	fix_parser* const parser = create_fix_parser(mixed_message_classifier);
-	int count = 0;
-	clock_t t_start = clock();
-
-	for(int i = 0; i < N; ++i)
-	{
-		for(const char* p = s.c_str(); p < end; p += step)
-		{
-			for(const fix_message* pm = get_first_fix_message(parser, p, std::min(step, end - p)); pm; pm = get_next_fix_message(parser))
-			{
-				ensure(!pm->error);
-				validate_mixed_message(pm);
-				++count;
-			}
-	
-			ensure(!get_fix_parser_error(parser));
-		}
-	}
-
-	const clock_t t_end = clock();
-
-	free_fix_parser(parser);
-	ensure(count == N * M);
-
-	print_running_time("Mixed messages", N * M, t_start, t_end);
+	test_for_speed("Mixed messages", mixed_message_classifier, create_test_data, validate_mixed_message);
 }
 
 // batch
