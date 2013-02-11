@@ -379,8 +379,9 @@ time_t get_fix_tag_as_local_mkt_date(const struct fix_group_node* node, size_t t
 	MATCH(0);
 
 	t.tm_year -= 1900;
+	t.tm_mon -= 1;
 	t.tm_hour = t.tm_min = t.tm_sec = t.tm_yday = t.tm_isdst = 0;
 
-	return _mkgmtime(&t);
+	return mktime(&t);
 }
 

@@ -23,7 +23,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #pragma once
 
-#include "test_messages.h"
 #include "../parser/fix_parser_impl.h"
 #include "test_utils.h"
 
