@@ -9,11 +9,11 @@
   <body>
     <h2>Fast Fix Parser (FFP)</h2>
     <h3>What is FFP?</h3>
-    FFP is a library which converts chunks of data (raw bytes) as they arrive
-    from e.g. a socket, into a representation of Fix messages that can be
-    further analysed for semantic checks, converted into “business” structures,
-    etc. It also provides a way to specify what tags are allowed for a
-    particular message and verifies this specification at run-time.<br>
+    Fast FIX Parser (FFP) is a library for parsing Financial Information eXchange protocol (FIX) messages. 
+    It takes input bytes as they arrive from, for example, a socket, and converts them into a representation 
+    of FIX messages which can be further analysed for semantic checks, converted into “business” structures, etc. 
+    It also provides a way to specify which tags are allowed for a particular message and verifies this 
+    specification at runtime.<br>
     <h3>Why another Fix parser?</h3>
     Yes, there are many other Fix parsers out there. This library aims to
     address the following issues with other similar designs:<br>
@@ -118,7 +118,8 @@
     associated with a tag is <span style="font-family: monospace;">get_fix_tag()</span>
     which returns a pointer to a <span style="font-family: monospace;">struct
       fix_tag</span>. The tag data may either be a null-terminated string of
-    chars or a pointer to the first element of a group. In the former case the <span
+    chars or a pointer to the first element of a group. In the former case the <span
+
       style="font-family: monospace;">value</span> member of <span style="font-family: monospace;">struct
       fix_tag</span> is set to point to the first character of the string and
     the <span style="font-family: monospace;">length</span> member holds the
@@ -195,7 +196,8 @@
     In this simple example only three messages are expected (<span style="font-family: monospace;">Logon</span>,
     <span style="font-family: monospace;">Logout </span>and <span style="font-family: monospace;">NewOrderSingle</span>),
     in a real production code there will certainly be more of them. The
-    classifier refers to three parser table entries. A simple entry definition (<span
+    classifier refers to three parser table entries. A simple entry definition (<span
+
       style="font-family: monospace;">Logout </span>message) may look like the
     following:<br>
     <br>
