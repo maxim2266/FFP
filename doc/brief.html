@@ -9,37 +9,37 @@
   <body>
     <h2>Fast Fix Parser (FFP)</h2>
     <h3>What is FFP?</h3>
-    Fast FIX Parser (FFP) is a library for parsing Financial Information eXchange protocol (FIX) messages. 
-    It takes input bytes as they arrive from, for example, a socket, and converts them into a representation 
-    of FIX messages which can be further analysed for semantic checks, converted into “business” structures, etc. 
-    It also provides a way to specify which tags are allowed for a particular message and verifies this 
-    specification at runtime.<br>
+    Fast FIX Parser (FFP) is a library for parsing Financial Information
+    eXchange protocol (FIX) messages. It takes input bytes as they arrive from,
+    for example, a socket, and converts them into a representation of FIX
+    messages which can be further analysed for semantic checks, converted into
+    “business” structures, etc. It also provides a way to specify which tags are
+    allowed for a particular message and verifies this specification at runtime.<br>
     <h3>Why another Fix parser?</h3>
     Yes, there are many other Fix parsers out there. This library aims to
     address the following issues with other similar designs:<br>
     <ul>
-      <li>Speed. This parser can process about 260,000 messages with groups per
-        second in a single thread on my rather old Core i5-430M 2.26GHz laptop,
-        and about 520,000 simple messages without groups. The processing time is
-        more or less a linear function of the message length.</li>
+      <li>Speed. On my rather old Core i5-430M 2.26GHz laptop, in a single
+        thread, this parser can process about 260,000 messages with groups per
+        second and about 520,000 simple messages per second. The processing time
+        is more or less a linear function of the message length.</li>
       <li>It does not impose any particular I/O or threading model. In fact, it
         does no I/O at all, and there are no threads running in the background.
         This greatly simplifies integration of the library into an existing code
         base. </li>
       <li>The parser does not expect every chunk of its input data to be a
-        complete Fix message. The data can be fed into the parser as they become
+        complete FIX message. The data can be fed into the parser as they become
         available, and the parser splits or combines the input into complete
         messages.</li>
       <li>The parser is written in plain C, not in C++. Consequently, it does
         not use C++ exceptions for delivering errors. While C++ exceptions is a
         convenient mechanism for error reporting and processing, it also affects
-        overall performance because it usually takes quite some time (hundreds
-        of microseconds for one implementation I tried) for an exception to be
-        propagated from the point where it is thrown to the point where it gets
-        caught and processed. To make things worse, the time is implementation
-        dependent and is not guaranteed. On a high-speed server this time can
-        cause a serious disruption to the message processing pipelines, also
-        delaying processing of Fix messages coming from other connections.</li>
+        overall performance because it usually takes substantial time for an
+        exception to be propagated from the point where it is thrown to the
+        point where it gets caught and processed. To make things worse, the time
+        is implementation dependent. On a high-speed server this time can cause
+        a serious disruption to the message processing pipelines, also delaying
+        processing of FIX messages coming from other connections.</li>
     </ul>
     <ul>
     </ul>
@@ -73,20 +73,24 @@
           <td><span style="font-family: monospace;">test/</span></td>
           <td>Some basic unit and performance tests.</td>
         </tr>
+        <tr>
+          <td><span style="font-family: monospace;">doc/</span></td>
+          <td>Documentation.</td>
+        </tr>
       </tbody>
     </table>
     <ul>
     </ul>
     Currently the library can be compiled using Visual Studio 2012 Express and
     tested as 32bit executable under Windows 7. Other platforms/compilers have
-    not been tried.<br>
+    not been tried yet.<br>
     <h3>Data representation and API</h3>
     Input data are simply raw bytes in the form of a pointer and a number of
     bytes from 1 to (theoretically) the maximum value the <span style="font-family: monospace;">size_t</span>
     type can hold.<br>
     <br>
-    Output is in the form of a series of data structures, each representing a
-    Fix message:<br>
+    Output is in the form of a series of data structures, each representing a FIX
+    message:<br>
     <img style="width: 552px; height: 516px;" title="Data structure" alt="" src="data_struct.png"><br>
     Given a buffer pointer <span style="font-family: monospace;">bytes</span>
     and a number of bytes in the buffer <span style="font-family: monospace;">n</span>,
@@ -110,7 +114,7 @@
     The loop iterates while <span style="font-family: monospace;">msg</span>
     pointer returned is not null. Also, notice the check for error inside the
     loop; more about error processing later. The <span style="font-family: monospace;">fix_message</span>
-    structure itself contains only a few attributes of the Fix message, but it
+    structure itself contains only a few attributes of the FIX message, but it
     can also be used to find the root node of the message via function <span style="font-family: monospace;">get_fix_message_root_node()</span>.
     This function returns a pointer to another type, <span style="font-family: monospace;">struct
       fix_group_node</span>. Essentially, this type is a map from a tag code to
@@ -118,8 +122,7 @@
     associated with a tag is <span style="font-family: monospace;">get_fix_tag()</span>
     which returns a pointer to a <span style="font-family: monospace;">struct
       fix_tag</span>. The tag data may either be a null-terminated string of
-    chars or a pointer to the first element of a group. In the former case the <span
-
+    chars or a pointer to the first element of a group. In the former case the <span
       style="font-family: monospace;">value</span> member of <span style="font-family: monospace;">struct
       fix_tag</span> is set to point to the first character of the string and
     the <span style="font-family: monospace;">length</span> member holds the
@@ -196,8 +199,7 @@
     In this simple example only three messages are expected (<span style="font-family: monospace;">Logon</span>,
     <span style="font-family: monospace;">Logout </span>and <span style="font-family: monospace;">NewOrderSingle</span>),
     in a real production code there will certainly be more of them. The
-    classifier refers to three parser table entries. A simple entry definition (<span
-
+    classifier refers to three parser table entries. A simple entry definition (<span
       style="font-family: monospace;">Logout </span>message) may look like the
     following:<br>
     <br>
@@ -254,18 +256,18 @@
       returned from the <span style="font-family: monospace;">get_fix_parser_error()</span>
       function.</p>
     <h3> Future FFP development</h3>
-    <h4>Short term:</h4>
+    <h4>Short/medium term:</h4>
     <ul>
       <li>Testing. So far the library has only a few very basic tests using some
-        Fix messages I picked up somewhere on the Web. That is clearly not
+        FIX messages I picked up somewhere on the Web. That is clearly not
         enough. For a better test, a complete implementation of a real-life
         protocol is needed, along with a large set of messages conforming to
         this protocol to test the implementation. Companies are understandably
-        reluctant to publish their Fix messages, but without it the correctness
+        reluctant to publish their FIX messages, but without it the correctness
         of the code cannot be reliably verified.</li>
       <li>Profiling and optimisation. Though, there is no point in doing that
         before the code is well tested.</li>
-      <li>Add support for other compilers/platforms (?).</li>
+      <li>Add support for other compilers/platforms.</li>
     </ul>
     <h4>Long term:</h4>
     <ul>
