@@ -1,11 +1,10 @@
 # Fast FIX (Financial Information Exchange) protocol parser [FFP]
 
-
-Fast FIX Parser (FFP) is a library which converts chunks of data (raw bytes) 
-as they arrive from e.g. a socket, into a representation of FIX messages that 
-can be further analysed for semantic checks, converted into “business” structures, etc. 
-It also provides a way to specify what tags are allowed for a particular message and 
-verifies this specification at run-time.
+Fast FIX Parser (FFP) is a library for parsing Financial Information eXchange (FIX) messages. 
+It takes input bytes as they arrive from, for example, a socket, and converts them into a representation 
+of FIX messages which can be further analysed for semantic checks, converted into “business” structures, etc. 
+It also provides a way to specify which tags are allowed for a particular message and verifies this 
+specification at runtime.
 
 ### Why?
 
