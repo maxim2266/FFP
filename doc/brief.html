@@ -48,7 +48,7 @@
     <table style="width: 724px; height: 134px;" border="0">
       <tbody>
         <tr>
-          <td><span style="font-style: italic;"><span style="font-weight: bold;">File(s)</span></span></td>
+          <td><span style="font-style: italic;"><span style="font-weight: bold;">File(s)/Directories</span></span></td>
           <td><span style="font-style: italic;"><span style="font-weight: bold;">Description</span></span></td>
         </tr>
         <tr>
@@ -57,12 +57,11 @@
         </tr>
         <tr>
           <td><span style="font-family: monospace;">parser/</span></td>
-          <td style="height: 20px;">The directory contains all the
-            implementation files.</td>
+          <td style="height: 20px;">FFP implementation source files.</td>
         </tr>
         <tr>
-          <td><span style="font-family: monospace;">example.c</span></td>
-          <td>Contains some example code.</td>
+          <td><span style="font-family: monospace;">example/</span></td>
+          <td>Some example code.</td>
         </tr>
         <tr>
           <td><span style="font-family: monospace;">test.cpp</span></td>
@@ -89,8 +88,8 @@
     bytes from 1 to (theoretically) the maximum value the <span style="font-family: monospace;">size_t</span>
     type can hold.<br>
     <br>
-    Output is in the form of a series of data structures, each representing a FIX
-    message:<br>
+    Output is in the form of a series of data structures, each representing a
+    FIX message:<br>
     <img style="width: 552px; height: 516px;" title="Data structure" alt="" src="data_struct.png"><br>
     Given a buffer pointer <span style="font-family: monospace;">bytes</span>
     and a number of bytes in the buffer <span style="font-family: monospace;">n</span>,
