@@ -114,7 +114,7 @@ boolean expand_message_node(struct fix_group_node* pnode)
 		size_t i;
 		struct fix_tag* old_buff;
 
-		if(pnode->cap_index == _countof(caps) - 1)
+		if(pnode->cap_index == sizeof(caps)/sizeof(caps[0]) - 1)
 			return NO;	// too many tags
 
 		old_buff = pnode->buff;

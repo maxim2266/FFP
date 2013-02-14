@@ -26,6 +26,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <stddef.h>
 #include <stdint.h>
 
+#ifndef _MSC_VER
+#include <time.h>	// for time_t definition
+#endif
+
 #ifdef __cplusplus 
 extern "C" 
 {
@@ -135,7 +139,7 @@ time_t get_fix_tag_as_local_mkt_date(const struct fix_group_node* node, size_t t
 	static int is_first_in_group_ ## name(size_t __tag) { return (__tag == (first_tag)) ? 1 : 0; }
 
 #define MESSAGE(name)	\
-	static int is_first_in_group_ ## name(size_t __tag) { __tag; return 0; }
+	static int is_first_in_group_ ## name(size_t __tag) { (void)__tag; return 0; }
 
 #define PARSER_TABLE(name)	\
 	tag_table_ ## name
@@ -168,7 +172,7 @@ time_t get_fix_tag_as_local_mkt_date(const struct fix_group_node* node, size_t t
 	default: return 0; } }
 
 #define NO_DATA_TAGS(name)	\
-	static size_t get_data_tag_in_ ## name(size_t __tag) { __tag; return 0; }
+	static size_t get_data_tag_in_ ## name(size_t __tag) { (void)__tag; return 0; }
 
 #define GROUPS(name)	\
 	static const struct fix_tag_classifier* get_group_classifier_in_ ## name(size_t __tag) { switch(__tag) {
@@ -180,7 +184,7 @@ time_t get_fix_tag_as_local_mkt_date(const struct fix_group_node* node, size_t t
 	default: return NULL; } }
 
 #define NO_GROUPS(name)	\
-	static const struct fix_tag_classifier* get_group_classifier_in_ ## name(size_t __tag) { __tag; return NULL; }
+	static const struct fix_tag_classifier* get_group_classifier_in_ ## name(size_t __tag) { (void)__tag; return NULL; }
 
 #ifdef __cplusplus 
 }

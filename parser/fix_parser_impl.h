@@ -23,7 +23,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #pragma once
 
+#ifdef _MSC_VER
 #include <crtdbg.h>
+#endif
 
 #include "../fix_parser.h"
 

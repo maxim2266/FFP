@@ -1,0 +1,2 @@
+#! /bin/sh
+g++ -O2 -s -Wall -o mingw-test.exe -DNDEBUG -D_CONSOLE -std=gnu++0x test.cpp test/*.cpp example/example.c parser/*.c

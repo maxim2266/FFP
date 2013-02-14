@@ -28,6 +28,14 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <stdarg.h>
 #include <stdio.h>
 
+#ifdef _MSC_VER
+#define SPRINTF_S sprintf_s
+#define VSPRINTF_S vsprintf_s
+#else
+#define SPRINTF_S snprintf
+#define VSPRINTF_S vsnprintf
+#endif
+
 static
 boolean is_alnum(char c)
 {
@@ -59,7 +67,7 @@ void report_splitter_error(struct fix_parser* parser, const char* fmt, ...)
 	char buff[1000];
 
 	va_start(args, fmt);
-	n = vsprintf_s(buff, sizeof(buff), fmt, args);
+	n = VSPRINTF_S(buff, sizeof(buff), fmt, args);
 
 	if(n > 0)
 		set_parser_error(parser, buff, n + 1);

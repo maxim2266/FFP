@@ -635,7 +635,7 @@ void process_logon(const struct fix_message* msg)
 static
 void process_new_order_single(const struct fix_message* msg)
 {
-	msg;
+	(void)msg;
 	//
 }
 
@@ -664,9 +664,9 @@ void dispatch_message(const struct fix_message* msg)
 static
 void process_message_error(fix_message_version version, const char* type, const char* error)
 {
-	version;
-	type;
-	error;
+	(void)version;
+	(void)type;
+	(void)error;
 
 	// error handling code goes here
 	// note: get_fix_message_root_node() does not work on error

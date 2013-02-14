@@ -30,6 +30,14 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <stdio.h>
 #include <assert.h>
 
+#ifdef _MSC_VER
+#define SPRINTF_S sprintf_s
+#define VSPRINTF_S vsprintf_s
+#else
+#define SPRINTF_S snprintf
+#define VSPRINTF_S vsnprintf
+#endif
+
 // parser error reporting
 void set_parser_error(struct fix_parser* parser, const char* text, size_t n)
 {
@@ -51,11 +59,11 @@ void report_message_error(struct fix_parser* parser, const char* fmt, ...)
 	char buff[1000];
 
 	// message prefix (assuming it never fails)
-	const int prefix_len = sprintf_s(buff, sizeof(buff), "FIX message (version '%s', type '%s') error: ", version_strings[parser->message.properties.version], parser->message.properties.type);
+	const int prefix_len = SPRINTF_S(buff, sizeof(buff), "FIX message (version '%s', type '%s') error: ", version_strings[parser->message.properties.version], parser->message.properties.type);
 
 	// the rest of the message
 	va_start(args, fmt);
-	n = vsprintf_s(buff + prefix_len, sizeof(buff) - prefix_len, fmt, args);
+	n = VSPRINTF_S(buff + prefix_len, sizeof(buff) - prefix_len, fmt, args);
 
 	// copy bytes
 	if(n > 0)

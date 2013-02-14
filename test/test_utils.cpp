@@ -26,6 +26,11 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <string.h>
 #include <stdexcept>
 
+#ifndef _MSC_VER
+#include <stdio.h>
+#include <math.h>
+#endif
+
 // dummy classifier -------------------------------------------------------------------------------
 static
 int is_valid_tag(size_t)
@@ -171,7 +176,7 @@ void ensure_tag_as_real(const fix_group_node* node, size_t tag, const int64_t va
 	expected_val = value * pow(10.0, -num_frac);
 
 	ensure(get_fix_tag_as_double(node, tag, &my_val) == num_frac);
-	ensure(abs(expected_val - my_val) < pow(10.0, -num_frac));
+	ensure(fabs(expected_val - my_val) < pow(10.0, -num_frac));
 }
 
 #ifdef _WIN32
@@ -197,7 +202,12 @@ void ensure_tag_as_utc_timestamp(const fix_group_node* node, size_t tag, const c
 
 	char buff[50];
 
+#ifdef _MSC_VER
 	ensure(sprintf_s(buff, "%04hu%02hu%02hu-%02hu:%02hu:%02hu.%03hu", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds) > 0);
+#else
+	ensure(snprintf(buff, sizeof(buff), "%04hu%02hu%02hu-%02hu:%02hu:%02hu.%03hu", st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute, st.wSecond, st.wMilliseconds) > 0);
+#endif
+
 	ensure(strcmp(buff, value) == 0);
 }
 
