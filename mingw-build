@@ -1,2 +1,8 @@
 #! /bin/sh
-g++ -O2 -s -Wall -o mingw-test.exe -DNDEBUG -D_CONSOLE -std=gnu++0x test.cpp test/*.cpp example/example.c parser/*.c
+
+g++ -O2 -s -Wall -m32 \
+-o mingw-test.exe \
+-D_WIN32_IE=0x0401 -DWINVER=0x0500 -D_WIN32_WINNT=0x0500 -DNDEBUG -DRELEASE -D_CONSOLE \
+-std=gnu++0x \
+test.cpp test/*.cpp example/*.c parser/*.c -march=pentium4 -mtune=native \
+-Wl,-subsystem,console:4.10,--major-os-version,5
