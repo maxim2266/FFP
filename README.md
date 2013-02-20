@@ -13,7 +13,8 @@ specification at runtime.
 * The parser does not expect every chunk of its input data to be a complete FIX message. The input bytes can be fed into the parser as they become available, and the parser splits or combines the input into complete messages.
 
 
-
 ###### For more details see doc/brief.html
+
+###### Platforms: Windows, Linux
 
 ###### Licence: BSD
