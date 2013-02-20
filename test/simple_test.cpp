@@ -58,14 +58,14 @@ void splitter_test()
 
 	ensure(parser != nullptr);
 
-	const int n = 100;
+	const size_t n = 100;
 	size_t counter = 0;
 	const char* p = s.c_str();
 	const char* const end = p + s.size();
 
 	for(; p < end; p += n)
 	{
-		for(const fix_message* pm = get_first_fix_message(parser, p, std::min(n, end - p)); pm; pm = get_next_fix_message(parser))
+		for(const fix_message* pm = get_first_fix_message(parser, p, std::min(n, (size_t)(end - p))); pm; pm = get_next_fix_message(parser))
 		{
 			ensure(!get_fix_parser_error(parser));
 			validate_message(pm);

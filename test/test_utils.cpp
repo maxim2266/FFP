@@ -81,7 +81,7 @@ void print_running_time(const char* prefix, size_t num_messages, clock_t begin, 
 		msg_per_sec = 1./msg_time;
 
 	printf("[%s] Running time for %u messages: %.3f s (%.3f us/message, %u messages/s)\n", 
-		   prefix, num_messages, total_time, msg_time * 1000000., (unsigned)msg_per_sec);
+		   prefix, (unsigned)num_messages, total_time, msg_time * 1000000., (unsigned)msg_per_sec);
 }
 
 // message tester
@@ -93,7 +93,7 @@ void test_for_speed(const char* test_type,
 	const int M = 10;
 	const std::string s(creator(M));
 
-	const int step = 101, 
+	const size_t step = 101, 
 #ifdef _DEBUG
 		N = 1000;
 #else
@@ -105,11 +105,11 @@ void test_for_speed(const char* test_type,
 	int count = 0;
 	clock_t t_start = clock();
 
-	for(int i = 0; i < N; ++i)
+	for(size_t i = 0; i < N; ++i)
 	{
 		for(const char* p = s.c_str(); p < end; p += step)
 		{
-			for(const fix_message* pm = get_first_fix_message(parser, p, std::min(step, end - p)); pm; pm = get_next_fix_message(parser))
+			for(const fix_message* pm = get_first_fix_message(parser, p, std::min(step, (size_t)(end - p))); pm; pm = get_next_fix_message(parser))
 			{
 				ensure(!pm->error);
 				validator(pm);
@@ -189,7 +189,7 @@ void ensure_tag_as_utc_timestamp(const fix_group_node* node, size_t tag, const c
 {
 	const int64_t ts = get_fix_tag_as_utc_timestamp(node, tag);
 
-	ensure(ts != -1LL);
+	ensure(ts != (int64_t)-1);
 
 	FILETIME ft;
 
@@ -211,7 +211,30 @@ void ensure_tag_as_utc_timestamp(const fix_group_node* node, size_t tag, const c
 	ensure(strcmp(buff, value) == 0);
 }
 
-#endif	// ifdef _WIN32
+#else // Linux
+
+void ensure_tag_as_utc_timestamp(const fix_group_node* node, size_t tag, const char* value)
+{
+	const int64_t ts = get_fix_tag_as_utc_timestamp(node, tag);
+
+	ensure(ts != (int64_t)-1, "get_fix_tag_as_utc_timestamp() failed");
+	
+	const time_t sec = (time_t)(ts / 10000000);
+	struct tm* const ptm = gmtime(&sec);
+	
+	ensure(ptm, "gmtime() failed");
+	
+	char buff[50];
+
+	ensure(snprintf(buff, sizeof(buff), "%04hu%02hu%02hu-%02hu:%02hu:%02hu.%03hu", 
+					ptm->tm_year + 1900, ptm->tm_mon + 1, ptm->tm_mday, ptm->tm_hour, ptm->tm_min, ptm->tm_sec, (unsigned)((ts % 10000000) / 10000)) > 0);
+					
+	//printf("Expected: \"%s\", got: \"%s\"\n", value, buff);
+					
+	ensure(strcmp(buff, value) == 0, "Invalid time stamp");
+}
+
+#endif	// Linux
 
 // validator factories
 tag_validator make_validator(const char* value)

@@ -33,7 +33,7 @@ static
 void realloc_string_buffer(struct string_buffer* s, size_t n)
 {
 	s->str = REALLOC(char, s->str, n);
-	s->capacity = MSIZE(s->str);
+	s->capacity = n;
 }
 
 void copy_bytes_to_string_buffer(struct string_buffer* s, const char* bytes, size_t n)
@@ -207,7 +207,7 @@ int get_fix_tag_as_real(const struct fix_group_node* node, size_t tag, int64_t* 
 	integer = (unsigned char)(*s - '0');
 
 	for(++s; *s >= '0' && *s <= '9'; ++s)
-		integer = integer * 10LL + (unsigned char)(*s - '0');
+		integer = integer * 10 + (unsigned char)(*s - '0');
 
 	num_int = s - base;
 
@@ -215,7 +215,7 @@ int get_fix_tag_as_real(const struct fix_group_node* node, size_t tag, int64_t* 
 	{
 		// fractional part
 		for(base = ++s; *s >= '0' && *s <= '9'; ++s)
-			integer = integer * 10LL + (unsigned char)(*s - '0');
+			integer = integer * 10 + (unsigned char)(*s - '0');
 
 		num_frac = s - base;
 	}
@@ -282,25 +282,25 @@ int get_fix_tag_as_boolean(const struct fix_group_node* node, size_t tag)
 
 #define READ_2_DIGITS(r)	\
 	if(!IS_DIGIT(s[0]) || !IS_DIGIT(s[1]))	\
-		return -1LL;	\
+		return (int64_t)-1;	\
 	r = 10 * DIGIT_TO_INT(s[0]) + DIGIT_TO_INT(s[1]);	\
 	s += 2
 
 #define READ_3_DIGITS(r)	\
 	if(!IS_DIGIT(s[0]) || !IS_DIGIT(s[1]) || !IS_DIGIT(s[2]))	\
-		return -1LL;	\
+		return (int64_t)-1;	\
 	r = 100 * DIGIT_TO_INT(s[0]) + 10 * DIGIT_TO_INT(s[1]) + DIGIT_TO_INT(s[2]);	\
 	s += 3
 
 #define READ_4_DIGITS(r)	\
 	if(!IS_DIGIT(s[0]) || !IS_DIGIT(s[1]) || !IS_DIGIT(s[2]) || !IS_DIGIT(s[3]))	\
-		return -1LL;	\
+		return (int64_t)-1;	\
 	r = 1000 * DIGIT_TO_INT(s[0]) + 100 * DIGIT_TO_INT(s[1]) + 10 * DIGIT_TO_INT(s[2]) + DIGIT_TO_INT(s[3]);	\
 	s += 4
 
 #define MATCH(c)	\
 	if(*s++ != c)	\
-		return -1LL
+		return (int64_t)-1
 
 #ifdef _WIN32
 
@@ -324,7 +324,7 @@ int64_t get_fix_tag_as_utc_timestamp(const struct fix_group_node* node, size_t t
 	const char* s = get_fix_tag_as_string(node, tag);
 
 	if(!s)
-		return -1LL;
+		return (int64_t)-1;
 
 	READ_4_DIGITS(st.wYear);
 	READ_2_DIGITS(st.wMonth);
@@ -346,7 +346,7 @@ int64_t get_fix_tag_as_utc_timestamp(const struct fix_group_node* node, size_t t
 		MATCH(0);
 		break;
 	default:
-		return -1LL;
+		return (int64_t)-1;
 	}
 
 	st.wDayOfWeek = 0;
@@ -354,10 +354,66 @@ int64_t get_fix_tag_as_utc_timestamp(const struct fix_group_node* node, size_t t
 	return SystemTimeToFileTime(&st, &ft) ? 
 		(((int64_t)ft.dwHighDateTime << 32) | (int64_t)ft.dwLowDateTime)
 		: 
-		-1LL;
+		(int64_t)-1;
 }
 
-#endif	// ifdef _WIN32
+#else	// Linux
+
+int64_t get_fix_tag_as_utc_timestamp(const struct fix_group_node* node, size_t tag)
+{
+	/* From the spec:
+		String field representing Time/date combination represented in UTC (Universal Time Coordinated, also known as "GMT") 
+		in either YYYYMMDD-HH:MM:SS (whole seconds) or YYYYMMDD-HH:MM:SS.sss (milliseconds) format, colons, dash, and period required.
+
+		Valid values:
+		* YYYY = 0000-9999, MM = 01-12, DD = 01-31, HH = 00-23, MM = 00-59, SS = 00-60 (60 only if UTC leap second) (without milliseconds).
+		* YYYY = 0000-9999, MM = 01-12, DD = 01-31, HH = 00-23, MM = 00-59, SS = 00-60 (60 only if UTC leap second), sss=000-999 (indicating milliseconds).
+	*/
+
+	struct tm t;
+	time_t sec;
+	int64_t frac;
+	const char* s = get_fix_tag_as_string(node, tag);
+
+	if(!s)
+		return (int64_t)-1;
+
+	READ_4_DIGITS(t.tm_year);
+	READ_2_DIGITS(t.tm_mon);
+	READ_2_DIGITS(t.tm_mday);
+	MATCH('-');
+	READ_2_DIGITS(t.tm_hour);
+	MATCH(':');
+	READ_2_DIGITS(t.tm_min);
+	MATCH(':');
+	READ_2_DIGITS(t.tm_sec);
+
+	// correction
+	t.tm_year -= 1900;
+	t.tm_mon -= 1;
+	t.tm_yday = t.tm_isdst = 0;
+	
+	// convert
+	sec = timegm(&t);
+	
+	if(sec == (time_t)-1)
+		return (int64_t)-1;
+
+	// milliseconds
+	switch(*s++)
+	{
+	case 0:
+		return sec * 10000000;	// 100 ns intervals
+	case '.':
+		READ_3_DIGITS(frac);
+		MATCH(0);
+		return sec * 10000000 + frac * 10000;	// 100 ns intervals
+	default:
+		return (int64_t)-1;
+	}
+}
+
+#endif	// Linux
 
 time_t get_fix_tag_as_local_mkt_date(const struct fix_group_node* node, size_t tag)
 {
@@ -371,7 +427,7 @@ time_t get_fix_tag_as_local_mkt_date(const struct fix_group_node* node, size_t t
 	const char* s = get_fix_tag_as_string(node, tag);
 
 	if(!s)
-		return -1LL;
+		return (int64_t)-1;
 
 	READ_4_DIGITS(t.tm_year);
 	READ_2_DIGITS(t.tm_mon);

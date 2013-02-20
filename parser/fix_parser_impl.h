@@ -27,6 +27,16 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <crtdbg.h>
 #endif
 
+#ifdef _MSC_VER
+#define SPRINTF_S sprintf_s
+#define VSPRINTF_S vsprintf_s
+#define NOINLINE __declspec(noinline)
+#else
+#define SPRINTF_S snprintf
+#define VSPRINTF_S vsnprintf
+#define NOINLINE __attribute__((noinline))
+#endif
+
 #include "../fix_parser.h"
 
 typedef enum { NO, YES } boolean;
@@ -115,7 +125,6 @@ tag_reader_status read_binary_tag(struct tag_reader* reader, size_t tag);
 #define ALLOC_NZ(n, type)		(type*)calloc((n), sizeof(type))
 #define REALLOC(type, ptr, n)	(type*)realloc((ptr), (n) * sizeof(type))
 #define FREE(ptr)				free(ptr)
-#define MSIZE(ptr)				_msize(ptr)
 
 #define ZERO_FILL(ptr)	memset((ptr), 0, sizeof(*(ptr)))
 #define STR(x) #x

@@ -28,14 +28,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <stdarg.h>
 #include <stdio.h>
 
-#ifdef _MSC_VER
-#define SPRINTF_S sprintf_s
-#define VSPRINTF_S vsprintf_s
-#else
-#define SPRINTF_S snprintf
-#define VSPRINTF_S vsnprintf
-#endif
-
 static
 boolean is_alnum(char c)
 {
@@ -56,8 +48,7 @@ void init_splitter(struct splitter_data* sp)
 	sp->pattern = "8=FIX";
 }
 
-__declspec(noinline)
-static
+NOINLINE static
 void report_splitter_error(struct fix_parser* parser, const char* fmt, ...)
 {
 	static const char def_msg[] = "Unknown FIX message splitter error (Invalid error message format)";
@@ -75,8 +66,7 @@ void report_splitter_error(struct fix_parser* parser, const char* fmt, ...)
 		set_parser_error(parser, def_msg, sizeof(def_msg));
 }
 
-__declspec(noinline)
-static
+NOINLINE static
 void report_unexpected_symbol(struct fix_parser* parser, char c)
 {
 	static const char* const suff[] = 

@@ -30,14 +30,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <stdio.h>
 #include <assert.h>
 
-#ifdef _MSC_VER
-#define SPRINTF_S sprintf_s
-#define VSPRINTF_S vsprintf_s
-#else
-#define SPRINTF_S snprintf
-#define VSPRINTF_S vsnprintf
-#endif
-
 // parser error reporting
 void set_parser_error(struct fix_parser* parser, const char* text, size_t n)
 {
@@ -49,7 +41,7 @@ void set_parser_error(struct fix_parser* parser, const char* text, size_t n)
 // message error reporting
 static const char* const version_strings[] = { "FIX.4.2", "FIX.4.3", "FIX.4.4", "FIX.5.0" };
 
-__declspec(noinline)
+NOINLINE
 void report_message_error(struct fix_parser* parser, const char* fmt, ...)
 {
 	static const char def_msg[] = "Unknown FIX message error (Invalid error message format)";

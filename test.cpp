@@ -22,6 +22,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 */
 
 #include "parser/fix_parser_impl.h"
+#include <stdexcept>
 
 extern void all_simple_tests();
 extern void all_group_tests();
@@ -33,9 +34,22 @@ int main()
 	_CrtSetDbgFlag (_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-	all_simple_tests();
-	all_group_tests();
-	all_mixed_tests();
+	try
+	{
+		all_simple_tests();
+		all_group_tests();
+		all_mixed_tests();
+	}
+	catch(const std::exception& e)
+	{
+		fputs(e.what(), stderr);
+		return 1;
+	}
+	catch(...)
+	{
+		fputs("Unknown error", stderr);
+		return 1;
+	}
 
 	return 0;
 }

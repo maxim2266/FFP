@@ -170,24 +170,24 @@ static
 const struct item_value values[][8] = 
 {
 	{
-		{ 279, make_validator(0LL) },
-		{ 269, make_validator(0LL) },
+		{ 279, make_validator((int64_t)0) },
+		{ 269, make_validator((int64_t)0) },
 		{ 278, make_validator("BID") },
 		{ 55,  make_validator("EUR/USD") },
-		{ 270, make_validator(137215LL, 5) },	// "1.37215"
+		{ 270, make_validator((int64_t)137215, 5) },	// "1.37215"
 		{ 15,  make_validator("EUR") },
-		{ 271, make_validator(2500000LL) },
-		{ 346, make_validator(1LL) }
+		{ 271, make_validator((int64_t)2500000) },
+		{ 346, make_validator((int64_t)1) }
 	},
 	{
-		{ 279, make_validator(0LL) },
-		{ 269, make_validator(1LL) },
+		{ 279, make_validator((int64_t)0) },
+		{ 269, make_validator((int64_t)1) },
 		{ 278, make_validator("OFFER") },
 		{ 55,  make_validator("EUR/USD") },
-		{ 270, make_validator(137224LL, 5) },	// "1.37224"
+		{ 270, make_validator((int64_t)137224, 5) },	// "1.37224"
 		{ 15,  make_validator("EUR") },
-		{ 271, make_validator(2503200LL) },
-		{ 346, make_validator(1LL) }
+		{ 271, make_validator((int64_t)2503200) },
+		{ 346, make_validator((int64_t)1) }
 	}
 };
 
@@ -199,7 +199,7 @@ void validate_message_with_groups(const fix_message* pm)
 	ensure(get_fix_node_size(node) == 6);
 	ensure_tag(node, 49, "A");
 	ensure_tag(node, 56, "B");
-	ensure_tag_as_integer(node, 34, 12LL);
+	ensure_tag_as_integer(node, 34, (int64_t)12);
 	ensure_tag_as_utc_timestamp(node, 52, "20100318-03:21:11.364");
 	ensure_tag(node, 262, "A");
 

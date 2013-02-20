@@ -27,6 +27,10 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <stdio.h>
 #include <string.h>
 
+#ifndef _WIN32
+#define _strdup strdup
+#endif
+
 // Examples.
 // The first part explains the message specification language, the second part gives some coding examples.
 

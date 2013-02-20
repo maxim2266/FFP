@@ -1,0 +1,9 @@
+#! /bin/sh
+
+#-DWITH_VALIDATION \
+
+g++ -O2 -s -Wall -m64 -march=native -mtune=native \
+-o linux-test \
+-DNDEBUG -DRELEASE -D_CONSOLE \
+-std=gnu++0x \
+test.cpp test/*.cpp example/*.c parser/*.c
