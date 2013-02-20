@@ -23,6 +23,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 #include "parser/fix_parser_impl.h"
 #include <stdexcept>
+#include <stdio.h>
 
 extern void all_simple_tests();
 extern void all_group_tests();

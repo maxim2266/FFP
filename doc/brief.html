@@ -80,9 +80,34 @@
     </table>
     <ul>
     </ul>
-    Currently the library can be compiled using Visual Studio 2012 Express and
-    MinGW (gcc version 4.7.2), and was tested as 32bit executable under Windows
-    7. Other platforms/compilers have not been tried yet.<br>
+    So far, the library has been tested using the following platforms and
+    compilers:<br>
+    <br>
+    <table style="width: 723px;" border="0">
+      <tbody>
+        <tr>
+          <td><span style="font-style: italic;"><span style="font-weight: bold;">Platform</span></span></td>
+          <td><span style="font-style: italic;"><span style="font-weight: bold;">Compiler</span></span></td>
+          <td><span style="font-style: italic;"><span style="font-weight: bold;">Comment</span></span></td>
+        </tr>
+        <tr>
+          <td style="width: 111.05px;">Windows 7</td>
+          <td style="width: 266.45px;">Visual Studio 2012 Express</td>
+          <td style="width: 328.6px; height: 20px;">32bit executable</td>
+        </tr>
+        <tr>
+          <td>Windows 7</td>
+          <td> MinGW (gcc version 4.7.2)</td>
+          <td>32bit executable</td>
+        </tr>
+        <tr>
+          <td>Linux 64bit</td>
+          <td>gcc version 4.7.2</td>
+          <td>64bit executable</td>
+        </tr>
+      </tbody>
+    </table>
+    <br>
     <h3>Data representation and API</h3>
     Input data are simply raw bytes in the form of a pointer and a number of
     bytes from 1 to (theoretically) the maximum value the <span style="font-family: monospace;">size_t</span>
@@ -266,7 +291,6 @@
         of the code cannot be reliably verified.</li>
       <li>Profiling and optimisation. Though, there is no point in doing that
         before the code is well tested.</li>
-      <li>Add support for other compilers/platforms.</li>
     </ul>
     <h4>Long term:</h4>
     <ul>
