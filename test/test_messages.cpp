@@ -22,6 +22,56 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 */
 
 #include "test_messages.h"
+#include <numeric>
+#include <string>
+
+#ifndef _MSC_VER
+#include <string.h>
+#ifdef __MINGW32__
+#include <stdlib.h>	// for itoa()
+#endif
+#endif
+
+// message builder
+std::string make_fix_message(const char* s)
+{
+	// update length
+	const char* p = strstr(s, "\x01" "9=");
+
+	ensure(p && p > s);
+	p += 3;
+
+	std::string msg(s, p);
+
+	while(*p && *p != SOH)
+		++p;
+
+	ensure(*p && *++p);
+
+#ifdef __MINGW32__
+	// workaround: see http://gcc.gnu.org/bugzilla/show_bug.cgi?id=52015
+	char buff[100];
+
+	msg += itoa(strlen(p), buff, 10);
+
+#else
+	msg += std::to_string(strlen(p));
+#endif
+
+	msg += SOH;
+	msg += p;
+
+	// calculate checksum
+	const unsigned char check_sum = std::accumulate(msg.cbegin(), msg.cend(), (unsigned char)0);
+
+	msg.append("10=");
+	msg += (check_sum / 100) + '0';
+	msg += ((check_sum / 10) % 10) + '0';
+	msg += (check_sum % 10) + '0';
+	msg += SOH;
+
+	return msg;
+}
 
 // test messages and specifications
 // 1. simple message

@@ -71,6 +71,12 @@ const  fix_tag_classifier* get_dummy_classifier(fix_message_version, const char*
 }
 
 // helpers
+#ifdef WITH_VALIDATION
+#define HINT " with validation"
+#else
+#define HINT ""
+#endif
+
 void print_running_time(const char* prefix, size_t num_messages, clock_t begin, clock_t end)
 {
 	const clock_t t = end - begin;
@@ -80,7 +86,7 @@ void print_running_time(const char* prefix, size_t num_messages, clock_t begin, 
 		msg_time = total_time/num_messages,
 		msg_per_sec = 1./msg_time;
 
-	printf("[%s] Running time for %u messages: %.3f s (%.3f us/message, %u messages/s)\n", 
+	printf("[%s] Running time for %u messages" HINT ": %.3f s (%.3f us/message, %u messages/s)\n", 
 		   prefix, (unsigned)num_messages, total_time, msg_time * 1000000., (unsigned)msg_per_sec);
 }
 

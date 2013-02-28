@@ -30,7 +30,6 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 // assertion
 template< class T >
-inline
 void ensure(T r, const char* msg = nullptr)
 {
 	if(!r)

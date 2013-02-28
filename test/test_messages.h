@@ -26,6 +26,9 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include "../parser/fix_parser_impl.h"
 #include "test_utils.h"
 
+// message builder
+std::string make_fix_message(const char* s);
+
 // test messages and specifications
 // 1. simple message
 extern const char simple_message[];
