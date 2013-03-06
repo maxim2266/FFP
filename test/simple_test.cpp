@@ -118,12 +118,13 @@ void validate_m_message(const fix_message* pm)
 	ensure(pm->version == FIX_4_2);
 	ensure(pm->type[0] == '0' && pm->type[1] == 0);
 
-	const fix_group_node* node = get_fix_message_root_node(pm);
+	const fix_group_node* const node = get_fix_message_root_node(pm);
 
 	ensure(node != nullptr);
 	ensure(get_fix_node_size(node) == 4);
 	ensure_tag(node, 49, "A");
 	ensure_tag(node, 56, "B");
+	ensure_tag(node, 34, "12");
 	ensure_tag_as_utc_timestamp(node, 52, "20100304-07:59:30.000");
 }
 
@@ -181,6 +182,65 @@ void invalid_message_test2()
 	test_for_error(duplicate_tag_modifier, duplicate_tag_validator);
 }
 
+// binary tag test
+MESSAGE(mb_message_spec)
+	VALID_TAGS(mb_message_spec)
+		TAG(49)
+		TAG(56)
+		TAG(34)
+		TAG(52)
+		TAG(354)
+		TAG(355)
+	END_VALID_TAGS
+
+	DATA_TAGS(mb_message_spec)
+		DATA_TAG(354, 355)
+	END_DATA_TAGS
+
+	NO_GROUPS(mb_message_spec)
+END_NODE(mb_message_spec);
+
+static
+const struct fix_tag_classifier* mb_message_classifier(fix_message_version version, const char* msg_type)
+{
+	return (version == FIX_4_2 && msg_type[0] == '0' && msg_type[1] == 0) ? PARSER_TABLE_ADDRESS(mb_message_spec) : NULL; 
+}
+
+static
+void validate_mb_message(const fix_message* pm)
+{
+	ensure(pm->version == FIX_4_2);
+	ensure(pm->type[0] == '0' && pm->type[1] == 0);
+
+	const fix_group_node* const node = get_fix_message_root_node(pm);
+
+	ensure(node != nullptr);
+	ensure(get_fix_node_size(node) == 5);
+	ensure_tag(node, 49, "A");
+	ensure_tag(node, 56, "B");
+	ensure_tag(node, 34, "12");
+	ensure_tag_as_utc_timestamp(node, 52, "20100304-07:59:30.000");
+	ensure_tag(node, 355, "XYZ");
+	ensure(!get_fix_tag(node, 354));
+}
+
+static
+void test_binary_tag()
+{
+	std::string msg(m, sizeof(m) - 1);
+
+	msg += "354=3\x01" "355=XYZ\x01";
+	msg = make_fix_message(msg.c_str());
+
+	fix_parser* const parser = create_fix_parser(mb_message_classifier);
+	const fix_message* const pm = get_first_fix_message(parser, msg.c_str(), msg.size());
+
+	ensure(pm);
+	validate_mb_message(pm);
+	ensure(!get_next_fix_message(parser));
+	free_fix_parser(parser);
+}
+
 // speed test
 static
 void speed_test()
@@ -195,5 +255,6 @@ void all_simple_tests()
 	splitter_test();
 	invalid_message_test();
 	invalid_message_test2();
+	test_binary_tag();
 	speed_test();
 }
