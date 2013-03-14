@@ -677,9 +677,10 @@ void process_message_error(fix_message_version version, const char* type, const 
 }
 
 // example parser entry point
-// this function is usually called when a chunk of data arrives e.g. from a socket
+// this function is usually called when a chunk of data arrives, for example, from a socket
 int parse(struct fix_parser* parser, const void* bytes, size_t n)
 {
+	// For C++: throwing exceptions from this function without closing the parser first will leave the parser in inconsistent state!
 	const struct fix_message* msg;
 
 	// loop until all the messages are processed
