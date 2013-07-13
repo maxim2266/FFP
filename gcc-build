@@ -2,8 +2,9 @@
 
 #-DWITH_VALIDATION \
 
-g++ -O2 -s -Wall -m64 -march=native -mtune=native \
+g++ -O2 -s -Wall -march=native -mtune=native \
 -o linux-test \
 -DNDEBUG -DRELEASE -D_CONSOLE \
 -std=gnu++0x \
-test.cpp test/*.cpp example/*.c parser/*.c
+test.cpp test/*.cpp example/*.c parser/*.c  \
+-ffunction-sections -fdata-sections -Wl,--gc-sections
