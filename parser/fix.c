@@ -403,11 +403,11 @@ int64_t get_fix_tag_as_utc_timestamp(const struct fix_group_node* node, size_t t
 	switch(*s++)
 	{
 	case 0:
-		return sec * 10000000;	// 100 ns intervals
+		return (int64_t)sec * 10000000;	// 100 ns intervals
 	case '.':
 		READ_3_DIGITS(frac);
 		MATCH(0);
-		return sec * 10000000 + frac * 10000;	// 100 ns intervals
+		return (int64_t)sec * 10000000 + frac * 10000;	// 100 ns intervals
 	default:
 		return (int64_t)-1;
 	}
