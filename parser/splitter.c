@@ -169,7 +169,7 @@ void read_message(struct fix_parser* parser)
 
 					break;
 
-				case 1:
+				case SOH:
 					if(sp->byte_counter < 5)
 					{
 						report_splitter_error(parser, "Invalid FIX message length: %Iu", sp->byte_counter);
@@ -243,8 +243,18 @@ void read_message(struct fix_parser* parser)
 				break;
 
 			case SP_CHECK_SUM:
-				if(c >= '0' && c <= '9')
+				switch(c)
 				{
+				case '0':
+				case '1':
+				case '2':
+				case '3':
+				case '4':
+				case '5':
+				case '6':
+				case '7':
+				case '8':
+				case '9':
 					if(++sp->byte_counter == 4)
 					{
 						report_unexpected_symbol(parser, c);
@@ -252,9 +262,8 @@ void read_message(struct fix_parser* parser)
 					}
 
 					sp->their_sum = sp->their_sum * 10 + (char)(c - '0');
-				}
-				else if(c == SOH)
-				{
+					break;
+				case SOH:
 					if(sp->their_sum != sp->check_sum)
 					{
 						report_splitter_error(parser, "Invalid FIX message checksum");
@@ -265,13 +274,10 @@ void read_message(struct fix_parser* parser)
 					parse_message(parser);
 					init_splitter(sp);
 					return;
-				}
-				else
-				{
+				default:
 					report_unexpected_symbol(parser, c);
 					return;
 				}
-
 				break;
 
 			default:
