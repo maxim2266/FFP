@@ -57,7 +57,7 @@ void validate_mixed_message(const fix_message* pm)
 		validate_message_with_groups(pm);
 		break;
 	default:
-		ensure(false, "Unknown message type");
+		ensure_msg(false, "Unknown message type");
 		break;
 	}
 #else
@@ -72,7 +72,7 @@ void validate_mixed_message(const fix_message* pm)
 		size = 6;
 		break;
 	default:
-		ensure(false, "Unknown message type");
+		ensure_msg(false, "Unknown message type");
 		return;
 	}
 

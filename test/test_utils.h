@@ -30,11 +30,23 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 
 // assertion
 template< class T >
-void ensure(T r, const char* msg = nullptr)
+void ensure_impl(T r, const char* msg, const char* file, const int line)
 {
 	if(!r)
-		throw std::runtime_error(msg ? msg : "Assertion failed");
+	{
+		fprintf(stderr, "Assertion failed (%s, line %d)", file, line);
+
+		if(msg)
+			fprintf(stderr, ": %s\n", msg);
+		else
+			fputc('\n', stderr);
+
+		exit(-1);
+	}
 }
+
+#define ensure(cond) ensure_impl((cond), nullptr, __FILE__, __LINE__)
+#define ensure_msg(cond, msg) ensure_impl((cond), (msg), __FILE__, __LINE__)
 
 // helpers
 void print_running_time(const char* prefix, size_t num_messages, clock_t begin, clock_t end);
@@ -63,7 +75,7 @@ void test_for_speed(const char* test_type,
 
 // test configuration
 #ifdef NDEBUG
-//#define WITH_VALIDATION
+// #define WITH_VALIDATION
 #else
 #define WITH_VALIDATION
 #endif

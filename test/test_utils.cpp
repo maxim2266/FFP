@@ -237,7 +237,7 @@ void ensure_tag_as_utc_timestamp(const fix_group_node* node, size_t tag, const c
 					
 	//printf("Expected: \"%s\", got: \"%s\"\n", value, buff);
 					
-	ensure(strcmp(buff, value) == 0, "Invalid time stamp");
+	ensure_msg(strcmp(buff, value) == 0, "Invalid time stamp");
 }
 
 #endif	// Linux
