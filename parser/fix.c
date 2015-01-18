@@ -45,6 +45,24 @@ void copy_bytes_to_string_buffer(struct string_buffer* s, const char* bytes, siz
 	s->size = n;
 }
 
+char append_bytes_to_string_buffer_with_checksum(struct string_buffer* sb, const char* s, size_t n)
+{
+	char* p;
+	const char* const end = s + n;
+	char sum = 0;
+
+	if(sb->capacity < n + sb->size)
+		realloc_string_buffer(sb, n + sb->size);
+
+	p = sb->str + sb->size;
+	sb->size += n;
+
+	while(s != end)
+		sum += (*p++ = *s++);
+
+	return sum;
+}
+
 void append_char_to_string_buffer(struct string_buffer* s, char c)
 {
 	if(s->size == s->capacity)

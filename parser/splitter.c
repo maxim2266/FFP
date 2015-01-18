@@ -85,6 +85,24 @@ void report_unexpected_symbol(struct fix_parser* parser, char c)
 		report_splitter_error(parser, "Unexpected byte 0x%X in FIX message %s", CHAR_TO_INT(c), suff[parser->splitter.state]);
 }
 
+static
+void copy_message_body(struct fix_parser* parser)
+{
+	struct splitter_data* const sp = &parser->splitter;
+
+	const size_t
+		num_bytes = (size_t)(parser->end - parser->ptr),
+		msg_len = sp->byte_counter - 1,
+		n = msg_len < num_bytes ? msg_len : num_bytes;
+
+	if(n > 0)
+	{
+		sp->check_sum += append_bytes_to_string_buffer_with_checksum(&parser->buffer, parser->ptr, n);
+		parser->ptr += n;
+		sp->byte_counter -= n;
+	}
+}
+
 void read_message(struct fix_parser* parser)
 {
 	struct splitter_data* const sp = &parser->splitter;
@@ -214,6 +232,7 @@ void read_message(struct fix_parser* parser)
 					}
 
 					parser->message.properties.type[sp->counter] = 0;
+					copy_message_body(parser);
 					set_splitter_state(sp, SP_MSG, "");
 				}
 				else
@@ -228,7 +247,10 @@ void read_message(struct fix_parser* parser)
 				sp->check_sum += c;
 
 				if(--sp->byte_counter > 0)
+				{
 					append_char_to_string_buffer(&parser->buffer, c);
+					copy_message_body(parser);
+				}
 				else if(c == SOH)
 				{
 					append_char_to_string_buffer(&parser->buffer, SOH);
