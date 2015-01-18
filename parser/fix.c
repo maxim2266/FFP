@@ -36,25 +36,25 @@ void realloc_string_buffer(struct string_buffer* s, size_t n)
 	s->capacity = n;
 }
 
-void copy_bytes_to_string_buffer(struct string_buffer* s, const char* bytes, size_t n)
+void string_buffer_ensure_capacity(struct string_buffer* s, size_t n)
 {
 	if(s->capacity < n)
 		realloc_string_buffer(s, n);
+}
 
+void copy_bytes_to_string_buffer(struct string_buffer* s, const char* bytes, size_t n)
+{
+	string_buffer_ensure_capacity(s, n);
 	memcpy(s->str, bytes, n);
 	s->size = n;
 }
 
 char append_bytes_to_string_buffer_with_checksum(struct string_buffer* sb, const char* s, size_t n)
 {
-	char* p;
-	const char* const end = s + n;
 	char sum = 0;
+	const char* const end = s + n;
+	char* p = sb->str + sb->size;
 
-	if(sb->capacity < n + sb->size)
-		realloc_string_buffer(sb, n + sb->size);
-
-	p = sb->str + sb->size;
 	sb->size += n;
 
 	while(s != end)

@@ -48,6 +48,7 @@ struct string_buffer
 	char* str;
 };
 
+void string_buffer_ensure_capacity(struct string_buffer* s, size_t n);
 void append_char_to_string_buffer(struct string_buffer* s, char c);
 char append_bytes_to_string_buffer_with_checksum(struct string_buffer* sb, const char* s, size_t n);
 void copy_bytes_to_string_buffer(struct string_buffer* s, const char* bytes, size_t n);

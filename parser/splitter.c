@@ -86,7 +86,7 @@ void report_unexpected_symbol(struct fix_parser* parser, char c)
 }
 
 static
-void copy_message_body(struct fix_parser* parser)
+void append_message_body(struct fix_parser* parser)
 {
 	struct splitter_data* const sp = &parser->splitter;
 
@@ -232,7 +232,8 @@ void read_message(struct fix_parser* parser)
 					}
 
 					parser->message.properties.type[sp->counter] = 0;
-					copy_message_body(parser);
+					string_buffer_ensure_capacity(&parser->buffer, sp->byte_counter);
+					append_message_body(parser);
 					set_splitter_state(sp, SP_MSG, "");
 				}
 				else
@@ -249,7 +250,7 @@ void read_message(struct fix_parser* parser)
 				if(--sp->byte_counter > 0)
 				{
 					append_char_to_string_buffer(&parser->buffer, c);
-					copy_message_body(parser);
+					append_message_body(parser);
 				}
 				else if(c == SOH)
 				{
