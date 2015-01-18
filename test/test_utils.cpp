@@ -223,12 +223,12 @@ void ensure_tag_as_utc_timestamp(const fix_group_node* node, size_t tag, const c
 {
 	const int64_t ts = get_fix_tag_as_utc_timestamp(node, tag);
 
-	ensure(ts != (int64_t)-1, "get_fix_tag_as_utc_timestamp() failed");
+	ensure_msg(ts != (int64_t)-1, "get_fix_tag_as_utc_timestamp() failed");
 	
 	const time_t sec = (time_t)(ts / 10000000);
 	struct tm* const ptm = gmtime(&sec);
 	
-	ensure(ptm, "gmtime() failed");
+	ensure_msg(ptm, "gmtime() failed");
 	
 	char buff[50];
 
