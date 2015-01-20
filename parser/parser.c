@@ -298,7 +298,7 @@ struct fix_parser* create_fix_parser(classifier_func cf)
 	assert(cf);
 
 	parser->get_classifier = cf;
-	init_splitter(&parser->splitter);
+	INIT_SPLITTER(&parser->splitter);
 	return parser;
 }
 

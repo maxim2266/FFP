@@ -86,7 +86,7 @@ void invalid_message_test()
 	const fix_message* pm = get_first_fix_message(parser, m, sizeof(m) - 1);
 
 	ensure(!pm);
-	ensure(strcmp(get_fix_parser_error(parser), "Unexpected byte 0x2 in FIX message type") == 0);
+	ensure(strcmp(get_fix_parser_error(parser), "Unexpected byte 0x2 in FIX message") == 0);
 	ensure(!get_next_fix_message(parser));
 	free_fix_parser(parser);
 }

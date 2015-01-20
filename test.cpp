@@ -40,6 +40,8 @@ int main()
 		all_simple_tests();
 		all_group_tests();
 		all_mixed_tests();
+
+		return 0;
 	}
 	catch(const std::exception& e)
 	{
@@ -51,6 +53,4 @@ int main()
 		fputs("Unknown error", stderr);
 		return 1;
 	}
-
-	return 0;
 }

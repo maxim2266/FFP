@@ -41,7 +41,7 @@ void ensure_impl(T r, const char* msg, const char* file, const int line)
 		else
 			fputc('\n', stderr);
 
-		exit(-1);
+		throw std::runtime_error("Failed.");
 	}
 }
 

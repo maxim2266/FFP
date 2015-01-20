@@ -63,14 +63,6 @@ char append_bytes_to_string_buffer_with_checksum(struct string_buffer* sb, const
 	return sum;
 }
 
-void append_char_to_string_buffer(struct string_buffer* s, char c)
-{
-	if(s->size == s->capacity)
-		realloc_string_buffer(s, s->capacity > 0 ? (s->capacity * 2) : 300);
-
-	s->str[s->size++] = c;
-}
-
 void set_buffer_empty(struct string_buffer* s)
 {
 	s->size = 0;
