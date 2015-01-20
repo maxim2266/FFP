@@ -248,7 +248,7 @@ void read_message(struct fix_parser* parser)
 		}
 
 		// copy message body
-		while(sp->byte_counter > 0) 
+		while(sp->byte_counter > 0)
 		{
 			STATE_LABEL;
 			n = (size_t)(end - s);
@@ -260,7 +260,7 @@ void read_message(struct fix_parser* parser)
 			s += n;
 			sp->byte_counter -= n;
 		}
-		
+
 		if(parser->buffer.size > 0 && parser->buffer.str[parser->buffer.size - 1] != SOH)
 			report_splitter_error(parser, "FIX message body is not terminated with SOH");
 
@@ -268,6 +268,8 @@ void read_message(struct fix_parser* parser)
 		MATCH('1');
 		MATCH('0');
 		MATCH('=');
+
+		sp->counter = 0;
 
 		for(;;)
 		{
@@ -282,7 +284,7 @@ void read_message(struct fix_parser* parser)
 				case '7':
 				case '8':
 				case '9':
-					if(++sp->byte_counter == 4)
+					if(++sp->counter == 4)
 					{
 						report_unexpected_symbol(parser, c);
 						return;
@@ -291,7 +293,7 @@ void read_message(struct fix_parser* parser)
 					sp->their_sum = sp->their_sum * 10 + (char)(c - '0');
 					break;
 				case SOH:
-					if(sp->byte_counter != 3 || sp->their_sum != sp->check_sum)
+					if(sp->counter != 3 || sp->their_sum != sp->check_sum)
 					{
 						report_splitter_error(parser, "Invalid FIX message checksum");
 						return;
