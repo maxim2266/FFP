@@ -2,22 +2,22 @@
 Copyright (c) 2013, 2014, 2015, Maxim Konakov
  All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification, 
+Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
-1. Redistributions of source code must retain the above copyright notice, this list 
+1. Redistributions of source code must retain the above copyright notice, this list
    of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice, this list 
-   of conditions and the following disclaimer in the documentation and/or other materials 
+2. Redistributions in binary form must reproduce the above copyright notice, this list
+   of conditions and the following disclaimer in the documentation and/or other materials
    provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER 
-OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
+OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
@@ -31,6 +31,7 @@ void validate_message(const struct fix_message* pm)
 {
 	const fix_parser* const parser = (const fix_parser*) ((const char*)pm - offsetof(fix_parser, message));
 
+	ensure(!pm->error);
 	ensure_buffer(parser->buffer);
 	validate_simple_message(pm);
 }
@@ -67,10 +68,11 @@ void splitter_test()
 	{
 		for(const fix_message* pm = get_first_fix_message(parser, p, std::min(n, (size_t)(end - p))); pm; pm = get_next_fix_message(parser))
 		{
-			ensure(!get_fix_parser_error(parser));
 			validate_message(pm);
 			++counter;
 		}
+
+		ensure(!get_fix_parser_error(parser));
 	}
 
 	free_fix_parser(parser);
@@ -109,7 +111,7 @@ END_NODE(m_message_spec);
 static
 const struct fix_tag_classifier* m_message_classifier(fix_message_version version, const char* msg_type)
 {
-	return (version == FIX_4_2 && msg_type[0] == '0' && msg_type[1] == 0) ? PARSER_TABLE_ADDRESS(m_message_spec) : NULL; 
+	return (version == FIX_4_2 && msg_type[0] == '0' && msg_type[1] == 0) ? PARSER_TABLE_ADDRESS(m_message_spec) : NULL;
 }
 
 static
@@ -203,7 +205,7 @@ END_NODE(mb_message_spec);
 static
 const struct fix_tag_classifier* mb_message_classifier(fix_message_version version, const char* msg_type)
 {
-	return (version == FIX_4_2 && msg_type[0] == '0' && msg_type[1] == 0) ? PARSER_TABLE_ADDRESS(mb_message_spec) : NULL; 
+	return (version == FIX_4_2 && msg_type[0] == '0' && msg_type[1] == 0) ? PARSER_TABLE_ADDRESS(mb_message_spec) : NULL;
 }
 
 static
