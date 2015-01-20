@@ -269,9 +269,7 @@ void read_message(struct fix_parser* parser)
 		MATCH('0');
 		MATCH('=');
 
-		sp->counter = 0;
-
-		for(;;)
+		for(sp->counter = 0; sp->counter < 4; ++sp->counter)
 		{
 			BEGIN_MATCH
 				case '0':
@@ -284,12 +282,6 @@ void read_message(struct fix_parser* parser)
 				case '7':
 				case '8':
 				case '9':
-					if(++sp->counter == 4)
-					{
-						report_unexpected_symbol(parser, c);
-						return;
-					}
-
 					sp->their_sum = sp->their_sum * 10 + (char)(c - '0');
 					break;
 				case SOH:
@@ -307,7 +299,10 @@ void read_message(struct fix_parser* parser)
 			END_MATCH
 		}
 
-		break;
+		report_unexpected_symbol(parser, c);
+		return;
+
+		// should never get here
 		default:
 			report_splitter_error(parser, "Invalid FIX splitter state %d", sp->state);
 	}
