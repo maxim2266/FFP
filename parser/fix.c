@@ -2,22 +2,22 @@
 Copyright (c) 2013, 2014, 2015, Maxim Konakov
  All rights reserved.
 
-Redistribution and use in source and binary forms, with or without modification, 
+Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
-1. Redistributions of source code must retain the above copyright notice, this list 
+1. Redistributions of source code must retain the above copyright notice, this list
    of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice, this list 
-   of conditions and the following disclaimer in the documentation and/or other materials 
+2. Redistributions in binary form must reproduce the above copyright notice, this list
+   of conditions and the following disclaimer in the documentation and/or other materials
    provided with the distribution.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS 
-OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY 
-AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER 
-OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF 
-LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
+OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER
+OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
@@ -29,17 +29,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSI
 #include <assert.h>
 
 // string buffer ----------------------------------------------------------------------------------
-static
-void realloc_string_buffer(struct string_buffer* s, size_t n)
-{
-	s->str = REALLOC(char, s->str, n);
-	s->capacity = n;
-}
-
 void string_buffer_ensure_capacity(struct string_buffer* s, size_t n)
 {
 	if(s->capacity < n)
-		realloc_string_buffer(s, n);
+	{
+		s->str = REALLOC(char, s->str, n);
+		s->capacity = n;
+	}
 }
 
 void copy_bytes_to_string_buffer(struct string_buffer* s, const char* bytes, size_t n)
@@ -92,15 +88,12 @@ const char* read_fix_uint(const char* s, const char* const end, size_t* result_p
 
 	assert(result_ptr && s && s <= end);
 
-	if(s == end)	// empty string
-		return NULL;
-
-	if(*s < '1' || *s > '9')	// note: no leading zeroes
+	if(s == end || *s < '1' || *s > '9')
 		return NULL;
 
 	r = (unsigned char)(*s - '0');
 
-	while(++s < end && *s >= '0' && *s <= '9')
+	for(++s; s < end && *s >= '0' && *s <= '9'; ++s)
 	{
 		const size_t rr = 10 * r + (unsigned char)(*s - '0');
 
@@ -129,12 +122,12 @@ const char* get_fix_tag_as_string(const struct fix_group_node* node, size_t tag)
 
 int get_fix_tag_as_integer(const struct fix_group_node* node, size_t tag, int64_t* p)
 {
-	/* From the spec:	
-		Sequence of digits without commas or decimals and optional sign character (ASCII characters "-" and "0" - "9" ). 
-		The sign character utilizes one byte (i.e. positive int is "99999" while negative int is "-99999"). 
+	/* From the spec:
+		Sequence of digits without commas or decimals and optional sign character (ASCII characters "-" and "0" - "9" ).
+		The sign character utilizes one byte (i.e. positive int is "99999" while negative int is "-99999").
 		Note that int values may contain leading zeros (e.g. "00023" = "23"). */
 
-	int64_t r; 
+	int64_t r;
 	boolean positive;
 	const char *s;
 
@@ -179,11 +172,11 @@ int get_fix_tag_as_integer(const struct fix_group_node* node, size_t tag, int64_
 int get_fix_tag_as_real(const struct fix_group_node* node, size_t tag, int64_t* p_value)
 {
 	/* From the spec:
-		Sequence of digits with optional decimal point and sign character (ASCII characters "-", "0" - "9" and "."); 
-		the absence of the decimal point within the string will be interpreted as the float representation of an integer value. 
-		All float fields must accommodate up to fifteen significant digits. The number of decimal places used should be 
-		a factor of business/market needs and mutual agreement between counterparties. Note that float values may contain 
-		leading zeros (e.g. "00023.23" = "23.23") and may contain or omit trailing zeros after the decimal 
+		Sequence of digits with optional decimal point and sign character (ASCII characters "-", "0" - "9" and ".");
+		the absence of the decimal point within the string will be interpreted as the float representation of an integer value.
+		All float fields must accommodate up to fifteen significant digits. The number of decimal places used should be
+		a factor of business/market needs and mutual agreement between counterparties. Note that float values may contain
+		leading zeros (e.g. "00023.23" = "23.23") and may contain or omit trailing zeros after the decimal
 		point (e.g. "23.0" = "23.0000" = "23" = "23."). */
 
 	int64_t integer;
@@ -259,7 +252,7 @@ int get_fix_tag_as_double(const struct fix_group_node* node, size_t tag, double*
 		*p_value = mult[num_frac] * (double)val;
 	else if(num_frac == 0)
 		*p_value = (double)val;
-	
+
 	return num_frac;
 }
 
@@ -321,7 +314,7 @@ int get_fix_tag_as_boolean(const struct fix_group_node* node, size_t tag)
 int64_t get_fix_tag_as_utc_timestamp(const struct fix_group_node* node, size_t tag)
 {
 	/* From the spec:
-		String field representing Time/date combination represented in UTC (Universal Time Coordinated, also known as "GMT") 
+		String field representing Time/date combination represented in UTC (Universal Time Coordinated, also known as "GMT")
 		in either YYYYMMDD-HH:MM:SS (whole seconds) or YYYYMMDD-HH:MM:SS.sss (milliseconds) format, colons, dash, and period required.
 
 		Valid values:
@@ -361,9 +354,9 @@ int64_t get_fix_tag_as_utc_timestamp(const struct fix_group_node* node, size_t t
 
 	st.wDayOfWeek = 0;
 
-	return SystemTimeToFileTime(&st, &ft) ? 
+	return SystemTimeToFileTime(&st, &ft) ?
 		(((int64_t)ft.dwHighDateTime << 32) | (int64_t)ft.dwLowDateTime)
-		: 
+		:
 		(int64_t)-1;
 }
 
@@ -372,7 +365,7 @@ int64_t get_fix_tag_as_utc_timestamp(const struct fix_group_node* node, size_t t
 int64_t get_fix_tag_as_utc_timestamp(const struct fix_group_node* node, size_t tag)
 {
 	/* From the spec:
-		String field representing Time/date combination represented in UTC (Universal Time Coordinated, also known as "GMT") 
+		String field representing Time/date combination represented in UTC (Universal Time Coordinated, also known as "GMT")
 		in either YYYYMMDD-HH:MM:SS (whole seconds) or YYYYMMDD-HH:MM:SS.sss (milliseconds) format, colons, dash, and period required.
 
 		Valid values:
@@ -402,10 +395,10 @@ int64_t get_fix_tag_as_utc_timestamp(const struct fix_group_node* node, size_t t
 	t.tm_year -= 1900;
 	t.tm_mon -= 1;
 	t.tm_yday = t.tm_isdst = 0;
-	
+
 	// convert
 	sec = timegm(&t);
-	
+
 	if(sec == (time_t)-1)
 		return (int64_t)-1;
 
