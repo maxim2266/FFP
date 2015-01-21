@@ -88,7 +88,7 @@ struct splitter_data
 
 #define INIT_SPLITTER(sp)	ZERO_FILL(sp)
 
-void read_message(struct fix_parser* parser);
+NOINLINE void read_message(struct fix_parser* parser);
 
 // FIX parser -------------------------------------------------------------------------------------
 struct fix_parser
@@ -101,7 +101,7 @@ struct fix_parser
 };
 
 void set_parser_error(struct fix_parser* parser, const char* text, size_t n);
-void parse_message(struct fix_parser* parser);
+NOINLINE void parse_message(struct fix_parser* parser);
 
 // tag reader -------------------------------------------------------------------------------------
 struct tag_reader
@@ -116,9 +116,9 @@ struct tag_reader
 
 typedef enum { TR_OK, TR_DONE, TR_ERROR = -1 } tag_reader_status;
 
-void init_tag_reader(struct fix_parser* parser, struct tag_reader* reader);
-tag_reader_status read_next_tag(struct tag_reader* reader);
-tag_reader_status read_binary_tag(struct tag_reader* reader, size_t tag);
+NOINLINE void init_tag_reader(struct fix_parser* parser, struct tag_reader* reader);
+NOINLINE tag_reader_status read_next_tag(struct tag_reader* reader);
+NOINLINE tag_reader_status read_binary_tag(struct tag_reader* reader, size_t tag);
 
 // helpers ----------------------------------------------------------------------------------------
 #define ALLOC(type)				(type*)malloc(sizeof(type))
@@ -133,6 +133,6 @@ tag_reader_status read_binary_tag(struct tag_reader* reader, size_t tag);
 
 #define SOH ((char)1)
 
-void report_message_error(struct fix_parser* parser, const char* fmt, ...);
+NOINLINE void report_message_error(struct fix_parser* parser, const char* fmt, ...);
 const char* read_fix_uint(const char* s, const char* const end, size_t* result_ptr);
 

@@ -88,22 +88,31 @@ const char* read_fix_uint(const char* s, const char* const end, size_t* result_p
 
 	assert(result_ptr && s && s <= end);
 
-	if(s == end || *s < '1' || *s > '9')
+	if(s == end)
 		return NULL;
 
-	r = (unsigned char)(*s - '0');
+	r = ((unsigned char)*s) - '0';
 
-	for(++s; s < end && *s >= '0' && *s <= '9'; ++s)
+	if(r > 9 || r == 0)
+		return NULL;
+
+	for(++s; s < end; ++s)
 	{
-		const size_t rr = 10 * r + (unsigned char)(*s - '0');
+		size_t c = ((unsigned char)*s) - '0';
 
-		if(rr < r)	// overflow
+		if(c > 9)
+			break;
+
+		c = 10 * r + c;
+
+		if(c < r)	// overflow
 			return NULL;
 
-		r = rr;
+		r = c;
 	}
 
 	*result_ptr = r;
+
 	return s;
 }
 
