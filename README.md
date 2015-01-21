@@ -8,7 +8,7 @@ specification at runtime.
 
 ### Why?
 
-* Speed. On my rather old Core i5-430M 2.26GHz laptop, in a single thread, this parser can process about 350,000 messages with groups per second and about 810,000 simple messages per second. The processing time is more or less a linear function of the message length.
+* Speed. On my rather old Core i5-430M 2.26GHz laptop, in a single thread, this parser can process about 410,000 messages with groups per second and about 920,000 simple messages per second. The processing time is more or less a linear function of the message length.
 * It does not impose any particular I/O or threading model. In fact, it does no I/O at all, and there are no threads running in the background. This greatly simplifies integration of the library into an existing code base. 
 * The parser does not expect every chunk of its input data to be a complete FIX message. The input bytes can be fed into the parser as they become available, and the parser splits or combines the input into complete messages.
 
