@@ -86,7 +86,7 @@ static
 struct fix_tag* find_fix_tag(const struct fix_group_node* pnode, size_t tag)
 {
 	struct fix_tag* p;
-	size_t h1 = 2654435769u * tag;
+	size_t h1 = tag;
 	const size_t tbl_size = caps[pnode->cap_index];
 
 	if(tbl_size == 0)
