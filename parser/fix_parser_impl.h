@@ -77,8 +77,6 @@ struct real_fix_message
 void set_message_empty(struct real_fix_message* msg);
 
 // splitter ---------------------------------------------------------------------------------------
-typedef enum { SP_HEADER, SP_FIX_4, SP_BODY_LENGTH, SP_MSG_TYPE, SP_MSG, SP_CHECK_SUM } splitter_state;
-
 struct splitter_data
 {
 	int state;
