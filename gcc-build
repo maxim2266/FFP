@@ -2,7 +2,7 @@
 
 #-DWITH_VALIDATION \
 
-g++ -O2 -s -flto -Wl,--as-needed -Wall -march=native -mtune=native -fomit-frame-pointer \
+g++ -O3 -s -flto -Wl,--as-needed -Wall -march=native -mtune=native -fomit-frame-pointer \
 -o linux-test \
 -DNDEBUG -DRELEASE -D_CONSOLE \
 -std=gnu++0x \
