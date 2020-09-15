@@ -1,3 +1,5 @@
+_The project is no longer maintained. For an alternative take a look at [FullFIX](https://github.com/maxim2266/FullFIX)._
+
 # Fast FIX (Financial Information Exchange) protocol parser [FFP]
 
 Fast FIX Parser (FFP) is a library for parsing Financial Information eXchange (FIX) messages. 
